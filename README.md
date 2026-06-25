@@ -47,6 +47,8 @@ The static 32 baseline wrapper is:
 ./sh/run_train_one_stage_acc.sh --data-root /path/to/VDBSet
 ```
 
+The `acc` suffix is kept from the original `vgrad_train/sh/run_train_one_stage_acc.sh` entrypoint; it is the accelerate-based static baseline launcher.
+
 Both configs retain the paper-line one-stage settings such as class conditioning, occupancy head, EMA, `log1p` value space, DDPM schedule, P2 weighting, and temporal previous-frame conditioning for the temporal model.
 
 ## Dataset Layout
@@ -64,3 +66,25 @@ root/
 ```
 
 Each `.npz` file must contain `vol` with shape `[D, H, W]`. Optional `occ`, `leaf_base`, and `lvl_sizes` keys are supported.
+
+## Metadata Archive
+
+Current training does not require metadata JSON files by default. To reproduce legacy meta-gated runs, extract the metadata archive from the Hugging Face dataset repository into the same VDBSet root:
+
+```bash
+python tools/download_extract_meta.py --data-root /path/to/VDBSet
+```
+
+With a local proxy:
+
+```bash
+python tools/download_extract_meta.py --data-root /path/to/VDBSet --proxy http://127.0.0.1:7890
+```
+
+With an already downloaded archive:
+
+```bash
+python tools/download_extract_meta.py --archive /path/to/vfxdb_meta.tar.zst --data-root /path/to/VDBSet
+```
+
+The default remote archive path is `meta/vfxdb_meta.tar.zst` in `ryogishiki/VfxDB`. The extractor validates archive paths and rejects temporary rename paths by default.

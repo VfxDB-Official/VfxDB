@@ -8,6 +8,6 @@ fi
 
 accelerate launch \
   --num_processes "${NUM_PROCESSES:-1}" \
-  --mixed_precision "${MIXED_PRECISION:-no}" \
+  --mixed_precision "${MIXED_PRECISION:-fp16}" \
   train_one_stage.py \
   --config configs/train_static_32.yaml "$@"
