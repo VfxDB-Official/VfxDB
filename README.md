@@ -36,7 +36,37 @@ The public `.vdb` data is loaded through `vdb_ext`, which must be installed in t
 
 <https://github.com/ghosard/vdb_ext>
 
-`vdb_ext` must be built against compatible OpenVDB, NanoVDB, Boost, and TBB libraries. Make sure those shared libraries are visible at runtime, for example through `LD_LIBRARY_PATH` or the system loader cache.
+`vdb_ext` native dependencies:
+
+- OpenVDB C++ headers and libraries
+- NanoVDB headers, including `nanovdb/NanoVDB.h`
+- oneTBB
+- Boost.Iostreams
+- Blosc
+- zlib
+- xz / liblzma
+- LZ4
+- Snappy
+- Zstandard
+
+`vdb_ext` Python/build dependencies:
+
+- `cmake>=3.24`
+- `ninja`
+- `scikit-build-core>=0.10`
+- `pybind11>=2.12`
+- `numpy>=1.23`
+
+A conda-forge starting point for the native packages is:
+
+```bash
+conda install -c conda-forge \
+  cmake ninja cxx-compiler openvdb tbb boost blosc zlib xz lz4 snappy zstd
+```
+
+Depending on how OpenVDB is packaged on your system, NanoVDB headers may still need to come from an OpenVDB source checkout or a separate install prefix.
+
+Make sure the OpenVDB runtime libraries are visible when importing `vdb_ext`, for example through `LD_LIBRARY_PATH`, RPATH, or the system loader cache.
 
 ## Install
 
@@ -77,10 +107,23 @@ Install `vdb_ext` from source in the same environment:
 
 ```bash
 git clone https://github.com/ghosard/vdb_ext.git /tmp/vdb_ext
-python -m pip install /tmp/vdb_ext
+python -m pip install -r /tmp/vdb_ext/requirements-build.txt
+python -m pip install /tmp/vdb_ext \
+  --config-settings=cmake.define.VDB_EXT_OPENVDB_ROOT=/path/to/openvdb/prefix \
+  --config-settings=cmake.define.VDB_EXT_NANOVDB_ROOT=/path/to/openvdb/nanovdb \
+  --config-settings=cmake.define.VDB_EXT_RPATH_DIRS=/path/to/openvdb/prefix/lib
 ```
 
-If OpenVDB/NanoVDB are installed in a custom prefix, pass the CMake settings documented in the `vdb_ext` repository during `pip install`.
+If OpenVDB is installed into the active conda environment and NanoVDB headers are available from an OpenVDB source checkout, the install usually looks like:
+
+```bash
+python -m pip install /tmp/vdb_ext \
+  --config-settings=cmake.define.VDB_EXT_OPENVDB_ROOT="$CONDA_PREFIX" \
+  --config-settings=cmake.define.VDB_EXT_NANOVDB_ROOT=/path/to/openvdb/nanovdb \
+  --config-settings=cmake.define.VDB_EXT_RPATH_DIRS="$CONDA_PREFIX/lib"
+```
+
+If your OpenVDB install already exposes `nanovdb/NanoVDB.h` under its include path, `VDB_EXT_NANOVDB_ROOT` can point to that same install prefix.
 
 Check the environment:
 
