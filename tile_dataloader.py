@@ -862,12 +862,8 @@ def _load_dataset_index(root_dir: str) -> Dict:
 def _collect_samples(
     root_dir: str,
     categories: Optional[List[str]] = None,
-    metadata_mode: str = "required",
+    require_meta: bool = False,
 ) -> Tuple[List[SampleRecord], Dict[str, int]]:
-
-    metadata_mode = str(metadata_mode).lower().strip()
-    if metadata_mode not in ("required", "optional", "ignore"):
-        raise ValueError("metadata_mode must be one of: required, optional, ignore")
 
     ds_index = _load_dataset_index(root_dir)
     all_cats = ds_index.get("categories", [])
@@ -924,20 +920,20 @@ def _collect_samples(
                 continue
 
             abs_meta = None
-            if metadata_mode != "ignore" and meta_rel:
+            if require_meta:
+                if not meta_rel:
+                    continue
                 candidate_meta = os.path.join(cat_dir, meta_rel)
-                if os.path.isfile(candidate_meta):
-                    abs_meta = candidate_meta
-
-            if metadata_mode == "required" and abs_meta is None:
-                continue
+                if not os.path.isfile(candidate_meta):
+                    continue
+                abs_meta = candidate_meta
 
             samples.append(
                 SampleRecord(
                     id=sid,
                     category=cat,
                     data_path=vol_rel,
-                    meta_path=meta_rel if abs_meta is not None else None,
+                    meta_path=meta_rel if require_meta else None,
                     abs_data_path=abs_vol,
                     abs_meta_path=abs_meta,
                     abs_cat_dir=cat_dir,
@@ -1117,10 +1113,10 @@ def build_dataset_splits(
     prev_k: int = 0,
     prev_bbox_mode: str = "seq",
     transform_included: Union[bool, str] = "auto",
-    metadata_mode: str = "required",
+    require_meta: bool = False,
 ) -> Dict[str, VolumeMultiDataset]:
 
-    samples, cat_to_idx = _collect_samples(root_dir, categories, metadata_mode=metadata_mode)
+    samples, cat_to_idx = _collect_samples(root_dir, categories, require_meta=require_meta)
 
     ratio_sum = train_ratio + val_ratio + test_ratio
     if ratio_sum <= 0:

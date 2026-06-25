@@ -22,7 +22,7 @@ max_val_samples: 20
 max_test_samples: 20
 num_workers: 8
 return_meta: false
-metadata_mode: required   # required | optional | ignore
+require_meta: false
 temporal_enable: true
 transform_included: force_on
 prefetch_factor: 2

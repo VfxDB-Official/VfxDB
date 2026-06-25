@@ -16,7 +16,7 @@ max_val_samples: 4
 max_test_samples: 4
 num_workers: 0
 return_meta: false
-metadata_mode: required
+require_meta: false
 temporal_enable: true
 transform_included: force_off
 prefetch_factor: 2
