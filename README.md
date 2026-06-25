@@ -103,7 +103,10 @@ After `vdb_ext` is installed, run a short conditional static training job:
 ./sh/run_train_cond_static_32.sh \
   --data-root data/vdbset \
   --categories "[SurfaceFire]" \
-  --max-train-samples 100 \
+  --train-ratio 1 \
+  --val-ratio 0 \
+  --test-ratio 0 \
+  --max-train-samples 120 \
   --train-steps 1 \
   --batch-size 1 \
   --num-workers 0 \
