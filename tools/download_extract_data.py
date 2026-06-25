@@ -7,6 +7,7 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path, PurePosixPath
 
 
@@ -199,13 +200,64 @@ def validate_member_path(member: str) -> None:
         raise RuntimeError(f"refusing parent traversal archive path: {member}")
 
 
-def extract_archive(archive: Path, data_root: Path, category: str) -> None:
+def restore_manifest_archive(tmp_dir: Path, data_root: Path, category: str, folder: str) -> None:
+    manifest_path = tmp_dir / "_sequence_manifest.json"
+    manifest = load_json(manifest_path)
+    samples = manifest.get("samples", [])
+    if not isinstance(samples, list) or not samples:
+        raise RuntimeError(f"manifest has no samples: {manifest_path}")
+
+    restored = 0
+    for sample in samples:
+        if not isinstance(sample, dict):
+            continue
+        key = str(sample.get("key", "")).strip()
+        source_relpath = str(sample.get("source_relpath", "")).strip().replace("\\", "/")
+        if not key or not source_relpath:
+            continue
+        validate_member_path(source_relpath)
+        rel = PurePosixPath(source_relpath)
+        if len(rel.parts) < 3 or rel.parts[0] != category or rel.parts[1] != folder:
+            raise RuntimeError(f"manifest source path does not match archive category/folder: {source_relpath}")
+        src = tmp_dir / f"{key}.vdb"
+        if not src.is_file():
+            raise FileNotFoundError(f"manifest member not found after extraction: {src}")
+        dst = data_root / source_relpath
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, dst)
+        restored += 1
+
+    if restored == 0:
+        raise RuntimeError(f"no files restored from manifest: {manifest_path}")
+
+    manifest_dst = data_root / category / folder / "_sequence_manifest.json"
+    manifest_dst.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(manifest_path, manifest_dst)
+    print(f"[restore] {category}:{folder} files={restored}", flush=True)
+
+
+def extract_archive(archive: Path, data_root: Path, category: str, folder: str) -> None:
     members = list_tar_members(archive)
     for member in members:
         validate_member_path(member)
 
+    if "_sequence_manifest.json" in members:
+        with tempfile.TemporaryDirectory(prefix="vfxdb_extract_") as tmp:
+            tmp_dir = Path(tmp)
+            cmd = ["tar", "-xf", str(archive), "-C", str(tmp_dir)]
+            print("[tar]", " ".join(cmd), flush=True)
+            subprocess.run(cmd, check=True)
+            restore_manifest_archive(tmp_dir, data_root, category, folder)
+        return
+
     category_prefix = f"{category}/"
-    extract_root = data_root if all(m.startswith(category_prefix) for m in members) else data_root / category
+    folder_prefix = f"{folder}/"
+    if all(m.startswith(category_prefix) for m in members):
+        extract_root = data_root
+    elif all(m.startswith(folder_prefix) for m in members):
+        extract_root = data_root / category
+    else:
+        extract_root = data_root / category / folder
     extract_root.mkdir(parents=True, exist_ok=True)
     cmd = ["tar", "-xf", str(archive), "-C", str(extract_root)]
     print("[tar]", " ".join(cmd), flush=True)
@@ -218,10 +270,11 @@ def extract_archives(download_dir: Path, data_root: Path, archive_paths: list[st
         if len(parts) != 3 or parts[0] != "archives" or not parts[2].endswith(".tar"):
             raise RuntimeError(f"unexpected archive path: {remote}")
         category = parts[1]
+        folder = parts[2][:-4]
         archive = download_dir / remote
         if not archive.is_file():
             raise FileNotFoundError(f"downloaded archive not found: {archive}")
-        extract_archive(archive, data_root, category)
+        extract_archive(archive, data_root, category, folder)
 
 
 def run_meta_download(data_root: Path, download_dir: Path, repo_id: str, revision: str, proxy: str) -> None:
