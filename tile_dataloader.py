@@ -862,7 +862,12 @@ def _load_dataset_index(root_dir: str) -> Dict:
 def _collect_samples(
     root_dir: str,
     categories: Optional[List[str]] = None,
+    metadata_mode: str = "required",
 ) -> Tuple[List[SampleRecord], Dict[str, int]]:
+
+    metadata_mode = str(metadata_mode).lower().strip()
+    if metadata_mode not in ("required", "optional", "ignore"):
+        raise ValueError("metadata_mode must be one of: required, optional, ignore")
 
     ds_index = _load_dataset_index(root_dir)
     all_cats = ds_index.get("categories", [])
@@ -911,12 +916,20 @@ def _collect_samples(
             vol_rel = s.get(sample_path_type, None)
             meta_rel = s.get("meta_path")
 
-            if vol_rel is None or meta_rel is None:
+            if vol_rel is None:
                 continue
 
             abs_vol = os.path.join(cat_dir, vol_rel)
-            abs_meta = os.path.join(cat_dir, meta_rel) if meta_rel else None
-            if not os.path.exists(abs_vol) or not os.path.isfile(abs_meta):
+            if not os.path.exists(abs_vol):
+                continue
+
+            abs_meta = None
+            if metadata_mode != "ignore" and meta_rel:
+                candidate_meta = os.path.join(cat_dir, meta_rel)
+                if os.path.isfile(candidate_meta):
+                    abs_meta = candidate_meta
+
+            if metadata_mode == "required" and abs_meta is None:
                 continue
 
             samples.append(
@@ -924,7 +937,7 @@ def _collect_samples(
                     id=sid,
                     category=cat,
                     data_path=vol_rel,
-                    meta_path=meta_rel,
+                    meta_path=meta_rel if abs_meta is not None else None,
                     abs_data_path=abs_vol,
                     abs_meta_path=abs_meta,
                     abs_cat_dir=cat_dir,
@@ -1104,9 +1117,10 @@ def build_dataset_splits(
     prev_k: int = 0,
     prev_bbox_mode: str = "seq",
     transform_included: Union[bool, str] = "auto",
+    metadata_mode: str = "required",
 ) -> Dict[str, VolumeMultiDataset]:
 
-    samples, cat_to_idx = _collect_samples(root_dir, categories)
+    samples, cat_to_idx = _collect_samples(root_dir, categories, metadata_mode=metadata_mode)
 
     ratio_sum = train_ratio + val_ratio + test_ratio
     if ratio_sum <= 0:

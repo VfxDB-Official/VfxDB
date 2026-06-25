@@ -62,6 +62,7 @@ def build_everything(cfg):
         prev_k = int(raw.get("prev_k", 0)),
         prev_bbox_mode = str(raw.get("prev_bbox_mode", "seq")),
         transform_included=bool(raw.get("transform_included", False)),
+        metadata_mode=str(raw.get("metadata_mode", "required")),
     )
     ds = splits["train"]
 
