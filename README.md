@@ -14,7 +14,11 @@ This repository contains the project website assets and the minimal Hugging Face
 pip install -r requirements-core.txt
 ```
 
-For CUDA, install the matching PyTorch wheel for your machine first, then install the remaining requirements.
+For CUDA, install the matching PyTorch wheel for your machine first, then install the remaining requirements. The public `.vdb` data requires the separately released `vdb_ext` extension to be built or installed in the same Python environment.
+
+`vdb_ext` must be built against compatible OpenVDB/NanoVDB/Boost/TBB libraries, and those shared libraries must be visible at runtime, for example through `LD_LIBRARY_PATH` or the system loader cache.
+
+The download helpers use the Hugging Face `hf` CLI and `tar`; extracting the metadata archive also requires `zstd`.
 
 ## Dummy Smoke Test
 
@@ -69,6 +73,38 @@ root/
 ```
 
 Each `.npz` file must contain `vol` with shape `[D, H, W]`. Optional `occ`, `leaf_base`, and `lvl_sizes` keys are supported.
+
+## 1000 VDB Example
+
+This downloads indexes, selected data archives, and metadata for a small CloudWave run:
+
+```bash
+python tools/download_extract_data.py \
+  --data-root data/vdbset \
+  --categories CloudWave \
+  --max-samples-per-category 1000
+```
+
+With a local proxy:
+
+```bash
+python tools/download_extract_data.py \
+  --data-root data/vdbset \
+  --categories CloudWave \
+  --max-samples-per-category 1000 \
+  --proxy http://127.0.0.1:7890
+```
+
+The downloader selects the folder tar archives needed by the first indexed samples. For CloudWave at 1000 samples, this currently selects 9 archives under `archives/CloudWave/`.
+
+After `vdb_ext` is installed, run a short conditional static training job:
+
+```bash
+./sh/run_train_cond_static_32.sh \
+  --data-root data/vdbset \
+  --categories "[CloudWave]" \
+  --max-train-samples 1000
+```
 
 ## Metadata Archive
 

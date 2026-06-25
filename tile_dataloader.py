@@ -299,6 +299,8 @@ class VolumeMultiDataset(Dataset):
         super().__init__()
         self.samples = samples
         self.cat_to_idx = cat_to_idx
+        if any(os.path.splitext(r.abs_data_path)[1].lower() == ".vdb" for r in self.samples) and not HAS_VDB_EXT:
+            raise RuntimeError("vdb_ext is required for .vdb datasets. Build/install vdb_ext or use .npz data.")
         self.return_meta = return_meta
         self.transform = transform
         self.prev_k = int(prev_k)
@@ -829,14 +831,19 @@ class VolumeMultiDataset(Dataset):
         return sample
 
     def __getitem__(self, idx: int) -> Dict[str, Any]:
-        try:
-            sample = self._get_core(idx)
-            sample = self._attach_prev_fields(sample, idx)
-        except Exception as e:
-            print(f"[WARN] failed to get sample {idx}. {e}, skip.")
-            return self.__getitem__((idx + 1) % len(self))
+        last_error: Optional[Exception] = None
+        n = len(self)
+        for offset in range(n):
+            cur_idx = (idx + offset) % n
+            try:
+                sample = self._get_core(cur_idx)
+                return self._attach_prev_fields(sample, cur_idx)
+            except Exception as e:
+                last_error = e
+                if offset < 3:
+                    print(f"[WARN] failed to get sample {cur_idx}. {e}, skip.")
 
-        return sample
+        raise RuntimeError(f"failed to load any sample after {n} attempts; last error: {last_error}")
 
 
 # ===================== 索引构建工具 =====================
