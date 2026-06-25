@@ -1,84 +1,112 @@
 # VfxDB
 
-Official repository for the VfxDB paper:
-
-**VfxDB: A Visual Effects Volume Dataset and Benchmark for VDB-Native Generative Modeling**
+VfxDB training and inference code for VDB-native diffusion models, plus the project website assets.
 
 ![VfxDB teaser visualization](static/images/main_image.jpg)
 
-This repository contains the project website assets and the minimal Hugging Face diffusers training, inference, and validation path extracted from `vgrad_train`.
+## Repository Layout
+
+- `train_one_stage.py`: config-driven training entrypoint.
+- `infer_one_stage_hf.py`: inference from Hugging Face-format checkpoints.
+- `configs/`: training and inference YAML configs.
+- `sh/`: runnable shell wrappers for the released training settings.
+- `tools/`: dataset download, extraction, metadata, and dummy-data helpers.
+- `requirements-core.txt`: Python packages required for training and inference.
+- `requirements-render.txt`: optional packages for richer visual evaluation/rendering.
+- `index.html` and `static/`: project website files.
+
+## Environment
+
+Tested environment:
+
+- Linux with an NVIDIA GPU
+- Python 3.10.16
+- PyTorch 2.5.1+cu124
+- PyTorch CUDA runtime 12.4 (`cu124`)
+- NVIDIA driver 570.158.01; `nvidia-smi` reports CUDA 12.8
+
+System tools used by the scripts:
+
+- `git`
+- `tar`
+- `zstd`
+- CMake, Ninja, and a C++ compiler for building `vdb_ext`
+
+The public `.vdb` data is loaded through `vdb_ext`, which must be installed in the same Python environment:
+
+<https://github.com/ghosard/vdb_ext>
+
+`vdb_ext` must be built against compatible OpenVDB, NanoVDB, Boost, and TBB libraries. Make sure those shared libraries are visible at runtime, for example through `LD_LIBRARY_PATH` or the system loader cache.
 
 ## Install
 
-```bash
-pip install -r requirements-core.txt
-```
-
-For CUDA, install the matching PyTorch wheel for your machine first, then install the remaining requirements. The public `.vdb` data requires the separately released `vdb_ext` extension to be built or installed in the same Python environment.
-
-`vdb_ext` source and build instructions: <https://github.com/ghosard/vdb_ext>
-
-`vdb_ext` must be built against compatible OpenVDB/NanoVDB/Boost/TBB libraries, and those shared libraries must be visible at runtime, for example through `LD_LIBRARY_PATH` or the system loader cache.
-
-The download helpers use the Hugging Face `hf` CLI and `tar`; extracting the metadata archive also requires `zstd`.
-
-## Dummy Smoke Test
+Clone this repository:
 
 ```bash
-python tools/make_dummy_vdbset.py --out dummy_data/vdbset --num-categories 2 --num-sequences 2 --num-frames 4 --size 8
-python train_one_stage.py --config configs/train_dummy_static.yaml
-python tests/test_pipeline_parity.py
-python infer_one_stage_hf.py --config configs/infer_one_stage_hf.yaml --ckpt runs/dummy_static/one_stage_dummy_static/ckpt/step_000002 --out-dir results/dummy_infer
+git clone https://github.com/VfxDB-Official/VfxDB.git
+cd VfxDB
 ```
 
-The production training wrappers are in `sh/`. They assume you run from this folder.
-
-## Milestone Correspondence
-
-The paper/milestone training entry was:
+Create and activate a Python 3.10 environment:
 
 ```bash
-python train_one_stage.py --config configs/conditional_temporal_32_baseline_5ws.yaml
+conda create -n vfxdb python=3.10
+conda activate vfxdb
+python -m pip install --upgrade pip
 ```
 
-The open-source release exposes the three baseline settings:
+Install PyTorch. The tested wheel family is `cu124`:
 
 ```bash
-./sh/run_train_cond_static_32.sh --data-root /path/to/VDBSet
-./sh/run_train_cond_temporal_32.sh --data-root /path/to/VDBSet
-./sh/run_train_uncond_static_32.sh --data-root /path/to/VDBSet
+python -m pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cu124
 ```
 
-The older wrapper names are still available as aliases:
+Install the core Python requirements:
 
 ```bash
-./sh/run_train_one_stage_acc.sh --data-root /path/to/VDBSet
-./sh/run_train_one_stage.sh --data-root /path/to/VDBSet
+python -m pip install -r requirements-core.txt
 ```
 
-The `acc` suffix is kept from the original `vgrad_train/sh/run_train_one_stage_acc.sh` entrypoint; it is the accelerate-based static baseline launcher.
+Optional rendering/evaluation extras:
 
-Both configs retain the paper-line one-stage settings such as class conditioning, occupancy head, EMA, `log1p` value space, DDPM schedule, P2 weighting, and temporal previous-frame conditioning for the temporal model.
-
-## Dataset Layout
-
-Training expects a root like:
-
-```text
-root/
-  dataset_index.json
-  CategoryA/
-    category_index.json
-    seq000/
-      sample__n0000.npz
-      sample__n0000.json
+```bash
+python -m pip install -r requirements-render.txt
 ```
 
-Each `.npz` file must contain `vol` with shape `[D, H, W]`. Optional `occ`, `leaf_base`, and `lvl_sizes` keys are supported.
+Install `vdb_ext` from source in the same environment:
 
-## Small VDB Smoke
+```bash
+git clone https://github.com/ghosard/vdb_ext.git /tmp/vdb_ext
+python -m pip install /tmp/vdb_ext
+```
 
-This downloads indexes, one small real VDB archive, and metadata for a quick SurfaceFire run:
+If OpenVDB/NanoVDB are installed in a custom prefix, pass the CMake settings documented in the `vdb_ext` repository during `pip install`.
+
+Check the environment:
+
+```bash
+python - <<'PY'
+import sys
+import torch
+import vdb_ext
+
+print("python", sys.version.split()[0])
+print("torch", torch.__version__)
+print("torch cuda", torch.version.cuda)
+print("cuda available", torch.cuda.is_available())
+print("vdb_ext", vdb_ext.__file__)
+PY
+```
+
+## Download Data
+
+The public dataset files are hosted at:
+
+<https://huggingface.co/datasets/ryogishiki/VfxDB>
+
+The downloader fetches `dataset_index.json`, selected `category_index.json` files, the needed VDB tar archives, and the metadata archive by default. The released training configs do not require metadata (`require_meta: false`), but the archive is small and is kept with the extracted dataset by default.
+
+Small real VDB smoke dataset:
 
 ```bash
 python tools/download_extract_data.py \
@@ -86,37 +114,7 @@ python tools/download_extract_data.py \
   --folders SurfaceFire:24
 ```
 
-With a local proxy:
-
-```bash
-python tools/download_extract_data.py \
-  --data-root data/vdbset \
-  --folders SurfaceFire:24 \
-  --proxy http://127.0.0.1:7890
-```
-
-`SurfaceFire:24` currently selects `archives/SurfaceFire/24.tar`, about 45 MB, and provides 120 indexed VDB samples.
-
-After `vdb_ext` is installed, run a short conditional static training job:
-
-```bash
-./sh/run_train_cond_static_32.sh \
-  --data-root data/vdbset \
-  --categories "[SurfaceFire]" \
-  --train-ratio 1 \
-  --val-ratio 0 \
-  --test-ratio 0 \
-  --max-train-samples 120 \
-  --train-steps 1 \
-  --batch-size 1 \
-  --num-workers 0 \
-  --eval-every 1000000 \
-  --ckpt-every 1000000
-```
-
-## 1000 VDB Example
-
-For a larger CloudWave run:
+1000-VDB example:
 
 ```bash
 python tools/download_extract_data.py \
@@ -135,9 +133,75 @@ python tools/download_extract_data.py \
   --proxy http://127.0.0.1:7890
 ```
 
-The downloader selects the folder tar archives needed by the first indexed samples. For CloudWave at 1000 samples, this currently selects 9 archives under `archives/CloudWave/`.
+Skip metadata if you only want indexes and VDB archives:
 
-Then run:
+```bash
+python tools/download_extract_data.py \
+  --data-root data/vdbset \
+  --categories CloudWave \
+  --max-samples-per-category 1000 \
+  --skip-meta
+```
+
+Download metadata only:
+
+```bash
+python tools/download_extract_meta.py --data-root data/vdbset
+```
+
+Expected extracted layout:
+
+```text
+data/vdbset/
+  dataset_index.json
+  SurfaceFire/
+    category_index.json
+    24/
+      _sequence_manifest.json
+      s0024__n0000.vdb
+      s0024__n0001.vdb
+      ...
+```
+
+The dataset loader also supports `.npz` samples containing a `vol` array with shape `[D, H, W]`.
+
+## Train
+
+Run commands from the repository root. Command-line overrides use YAML keys with hyphens accepted as underscores, for example `--data-root` overrides `data_root`.
+
+Released training wrappers:
+
+```bash
+./sh/run_train_cond_static_32.sh --data-root data/vdbset
+./sh/run_train_cond_temporal_32.sh --data-root data/vdbset
+./sh/run_train_uncond_static_32.sh --data-root data/vdbset
+```
+
+`run_train_cond_static_32.sh` and `run_train_uncond_static_32.sh` use `accelerate launch`. You can set process count and mixed precision through environment variables:
+
+```bash
+NUM_PROCESSES=1 MIXED_PRECISION=fp16 ./sh/run_train_cond_static_32.sh --data-root data/vdbset
+```
+
+Short SurfaceFire smoke run:
+
+```bash
+./sh/run_train_cond_static_32.sh \
+  --data-root data/vdbset \
+  --categories "[SurfaceFire]" \
+  --train-ratio 1 \
+  --val-ratio 0 \
+  --test-ratio 0 \
+  --max-train-samples 120 \
+  --train-steps 1 \
+  --batch-size 1 \
+  --num-workers 0 \
+  --eval-every 1000000 \
+  --ckpt-every 1000000 \
+  --log-every 1
+```
+
+1000-VDB CloudWave run:
 
 ```bash
 ./sh/run_train_cond_static_32.sh \
@@ -146,24 +210,47 @@ Then run:
   --max-train-samples 1000
 ```
 
-## Metadata Archive
-
-Current training does not require metadata JSON files by default. To reproduce legacy meta-gated runs, extract the metadata archive from the Hugging Face dataset repository into the same VDBSet root:
+For a minimal environment without optional visual evaluation dependencies, disable automatic evaluation and run inference manually from checkpoints:
 
 ```bash
-python tools/download_extract_meta.py --data-root /path/to/VDBSet
+./sh/run_train_cond_static_32.sh \
+  --data-root data/vdbset \
+  --eval-every 0
 ```
 
-With a local proxy:
+Checkpoints and logs are written under the configured `runs/<setting>/<experiment>/` directory.
+
+## Inference
+
+Run inference from a Hugging Face-format checkpoint directory:
 
 ```bash
-python tools/download_extract_meta.py --data-root /path/to/VDBSet --proxy http://127.0.0.1:7890
+./sh/infer_one_stage_hf.sh \
+  --ckpt /path/to/hf/checkpoint \
+  --out-dir results/infer \
+  --eval-num-samples 2 \
+  --sampling-steps 20
 ```
 
-With an already downloaded archive:
+For conditional checkpoints, set a class by id when needed:
 
 ```bash
-python tools/download_extract_meta.py --archive /path/to/vfxdb_meta.tar.zst --data-root /path/to/VDBSet
+./sh/infer_one_stage_hf.sh \
+  --ckpt /path/to/hf/checkpoint \
+  --out-dir results/infer \
+  --eval-cfg-class-id 0
 ```
 
-The default remote archive path is `meta/vfxdb_meta.tar.zst` in `ryogishiki/VfxDB`. The extractor validates archive paths and rejects temporary rename paths by default.
+Outputs are saved as `.npz` files plus a `summary.json`.
+
+## Dummy Smoke Test
+
+This path does not require downloading public VDB archives:
+
+```bash
+./sh/train_dummy_static.sh
+./sh/validate_pipeline_parity.sh
+./sh/infer_one_stage_hf.sh \
+  --ckpt runs/dummy_static/one_stage_dummy_static/ckpt/step_000002 \
+  --out-dir results/dummy_infer
+```
