@@ -231,6 +231,8 @@ def upload_archive(repo_id: str, archive: Path, path_in_repo: str, commit_messag
         env["https_proxy"] = proxy
         env["HTTP_PROXY"] = proxy
         env["HTTPS_PROXY"] = proxy
+        env["all_proxy"] = proxy
+        env["ALL_PROXY"] = proxy
 
     print("[hf]", " ".join(cmd), flush=True)
     subprocess.run(cmd, check=True, env=env)

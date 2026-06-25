@@ -47,6 +47,8 @@ def proxy_env(proxy: str) -> dict[str, str]:
         env["https_proxy"] = proxy
         env["HTTP_PROXY"] = proxy
         env["HTTPS_PROXY"] = proxy
+        env["all_proxy"] = proxy
+        env["ALL_PROXY"] = proxy
     return env
 
 

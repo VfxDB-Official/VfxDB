@@ -1,0 +1,151 @@
+# =========================
+# One-Stage Multi-Ch Train Config
+# Unconditional static 32 baseline
+# =========================
+
+# ----- io -----
+data_root: ???
+out_dir: runs/uncond_static_32
+exp_name: "unconditional_static_20w_1em4_32_basline"
+seed: 42
+ckpt: ""
+step_name: ""
+eval_config: configs/infer_one_stage_hf.yaml
+
+# ----- dataset -----
+categories: null
+train_ratio: 0.8
+val_ratio: 0.1
+test_ratio: 0.1
+max_train_samples: 200000
+max_val_samples: 20
+max_test_samples: 20
+num_workers: 20
+return_meta: false
+require_meta: false
+temporal_enable: false
+transform_included: force_off
+prefetch_factor: 2
+
+prev_noised: true
+prev_same_t: true
+prev_drop_prob: 0.0
+prev_k: 0
+prev_bbox_mode: frame
+prev_missing_mode: zero
+
+# ----- train -----
+batch_size: 8
+train_steps: 1000000
+lr: 1e-4
+weight_decay: 0.0
+grad_clip: 1.0
+log_every: 50
+ckpt_every: 5000
+eval_every: 5000
+coslr: true
+
+# ----- diffusion -----
+timesteps: 200
+beta_start: 1e-4
+beta_end: 2e-2
+
+# ----- model -----
+base_channels: 64
+channel_mults: [1, 2, 4, 4]
+time_emb_dim: 256
+volume_size: 32
+
+# ----- class conditioning -----
+num_classes: 0
+class_names: null
+cond_key: category_id
+cond_drop_prob: 0.1
+
+# ----- loss -----
+loss_function: l1_l2
+lambda_l1: 0.2
+
+# ----- output spec -----
+prediction_type: epsilon
+out_spec:
+  pred: [0, 1]
+  occ: [1, 2]
+
+# ----- occupancy -----
+no_occupancy: false
+occ_threshold: 1e-6
+lambda_occ: 1.0
+occ_pos_weight: 0.0
+value_empty_weight: 0.05
+lambda_empty_leak: 0.1
+occ_deep_supervision: true
+no_occ_deep_supervision: false
+lambda_occ_ds: 0.5
+
+# ----- residual -----
+residual_weight: 0.0
+residual_leaf_base: 4
+residual_clip: 0.0
+residual_mask_by_occ: false
+
+# ----- ema / resume -----
+ema_decay: 0.9999
+resume: ""
+use_ema: true
+
+# ----- accel -----
+tf32: false
+
+# ----- auto eval -----
+eval_num_samples: 4
+eval_batch_size: 4
+eval_script: infer_one_stage_hf.py
+max_concurrent_evals: 1
+sampling_steps: 0
+eval_prediction_type: auto
+eval_cfg_scale: 2.0
+eval_cfg_class: ""
+eval_cfg_class_id: -1
+only_cfg_eps: true
+
+# ----- eval render / panel -----
+eval_vdb_threshold: 1e-5
+eval_export_size: 128
+eval_panel_cols: null
+eval_panel_cell: null
+eval_panel_max_width: 0
+eval_views_both: false
+eval_no_3d: false
+eval_no_vdb: false
+eval_no_vdb_render: false
+eval_vdb_dense_write: false
+eval_mitsuba: true
+eval_mitsuba_spp: 1
+eval_mitsuba_variant: scalar_rgb
+eval_mitsuba_scale: 1.0
+
+# ----- eval occ gating -----
+eval_force_occ_gating: true
+eval_disable_occ_gating: false
+eval_occ_gating_thr: null
+eval_occ_gating_mode: null
+eval_occ_upsampling: null
+eval_occ_soft_k: 12.0
+
+# ----- eval metrics -----
+eval_sparsity_thresholds: []
+eval_leak_threshold: null
+eval_seq_len: 4
+
+# ----- value-space -----
+value_space: log1p
+log1p_scale: 0.02
+log1p_dequant_delta: 0.0
+
+# ----- SNR/p2 weighting -----
+p2_k: 1.0
+p2_gamma: 1.0
+p2_normalize: true
+occ_tau: 10.0
+occ_t_weighting: alpha_bar

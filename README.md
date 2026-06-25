@@ -35,16 +35,19 @@ The paper/milestone training entry was:
 python train_one_stage.py --config configs/conditional_temporal_32_baseline_5ws.yaml
 ```
 
-The open-source temporal wrapper keeps the same training path and HF/diffusers trainer, with public paths and no-render HF eval:
+The open-source release exposes the three baseline settings:
 
 ```bash
-./sh/run_train_one_stage.sh --data-root /path/to/VDBSet
+./sh/run_train_cond_static_32.sh --data-root /path/to/VDBSet
+./sh/run_train_cond_temporal_32.sh --data-root /path/to/VDBSet
+./sh/run_train_uncond_static_32.sh --data-root /path/to/VDBSet
 ```
 
-The static 32 baseline wrapper is:
+The older wrapper names are still available as aliases:
 
 ```bash
 ./sh/run_train_one_stage_acc.sh --data-root /path/to/VDBSet
+./sh/run_train_one_stage.sh --data-root /path/to/VDBSet
 ```
 
 The `acc` suffix is kept from the original `vgrad_train/sh/run_train_one_stage_acc.sh` entrypoint; it is the accelerate-based static baseline launcher.
