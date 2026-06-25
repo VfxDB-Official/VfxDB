@@ -1,0 +1,5 @@
+# Optional extras for VDB export/rendering and richer visual evaluation.
+imageio
+matplotlib
+mitsuba==3.8.0
+pyvista==0.46.4

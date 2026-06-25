@@ -1,0 +1,8 @@
+accelerate==1.12.0
+diffusers==0.36.0
+numpy
+omegaconf==2.3.0
+Pillow
+PyYAML
+torch>=2.5.1
+tqdm

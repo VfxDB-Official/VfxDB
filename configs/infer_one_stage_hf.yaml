@@ -1,0 +1,42 @@
+ckpt: ""
+out_dir: results/infer
+step_name: ""
+use_ema: true
+
+channel_mults: [1, 2]
+base_channels: 4
+time_emb_dim: 32
+volume_size: 8
+value_space: log1p
+log1p_scale: 0.02
+
+timesteps: null
+beta_start: null
+beta_end: null
+sampling_steps: 4
+scheduler_name: ddpm
+scheduler_legacy_align: false
+scheduler_mode: null
+
+eval_prediction_type: auto
+eval_cfg_scale: 1.0
+eval_cfg_class: null
+eval_cfg_class_id: -1
+only_cfg_eps: true
+
+eval_seq_len: 1
+eval_seq_init: zero
+eval_prev_noised: true
+eval_prev_fixed_eps: true
+
+eval_num_samples: 2
+eval_batch_size: 2
+seed: 123
+
+eval_disable_occ_gating: false
+eval_force_occ_gating: true
+eval_occ_gating_mode: soft
+eval_occ_gating_thr: 0.5
+eval_occ_soft_k: 12.0
+
+save_npz: true

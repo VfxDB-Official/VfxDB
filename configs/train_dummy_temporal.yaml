@@ -1,0 +1,110 @@
+# Minimal temporal training smoke test.
+data_root: dummy_data/vdbset
+out_dir: runs/dummy_temporal
+exp_name: one_stage_dummy_temporal
+seed: 123
+ckpt: ""
+step_name: ""
+eval_config: configs/infer_one_stage_hf.yaml
+
+categories: null
+train_ratio: 0.8
+val_ratio: 0.1
+test_ratio: 0.1
+max_train_samples: 16
+max_val_samples: 4
+max_test_samples: 4
+num_workers: 0
+return_meta: false
+temporal_enable: true
+transform_included: force_off
+prefetch_factor: 2
+
+prev_noised: true
+prev_same_t: true
+prev_drop_prob: 0.0
+prev_k: 1
+prev_bbox_mode: frame
+prev_missing_mode: zero
+
+batch_size: 2
+train_steps: 2
+lr: 1e-4
+weight_decay: 0.0
+grad_clip: 1.0
+log_every: 1
+ckpt_every: 2
+eval_every: 0
+coslr: false
+
+timesteps: 8
+beta_start: 1e-4
+beta_end: 2e-2
+
+base_channels: 4
+channel_mults: [1, 2]
+time_emb_dim: 32
+volume_size: 8
+
+num_classes: -1
+class_names: null
+cond_key: category_id
+cond_drop_prob: 0.1
+
+loss_function: l1_l2
+lambda_l1: 0.2
+prediction_type: epsilon
+out_spec:
+  pred: [0, 1]
+  occ: [1, 2]
+
+no_occupancy: false
+occ_threshold: 1e-6
+lambda_occ: 1.0
+occ_pos_weight: 0.0
+value_empty_weight: 0.05
+lambda_empty_leak: 0.1
+occ_deep_supervision: true
+no_occ_deep_supervision: false
+lambda_occ_ds: 0.5
+
+residual_weight: 0.0
+residual_leaf_base: 4
+residual_clip: 0.0
+residual_mask_by_occ: false
+
+ema_decay: 0.9999
+resume: ""
+use_ema: true
+tf32: false
+mixed_precision: "no"
+gradient_accumulation_steps: 1
+
+eval_script: infer_one_stage_hf.py
+max_concurrent_evals: 0
+sampling_steps: 0
+eval_prediction_type: auto
+eval_cfg_scale: 1.0
+eval_cfg_class: ""
+eval_cfg_class_id: -1
+only_cfg_eps: true
+
+eval_num_samples: 2
+eval_batch_size: 2
+eval_export_size: 8
+eval_seq_len: 2
+eval_disable_occ_gating: false
+eval_force_occ_gating: true
+eval_occ_gating_thr: 0.5
+eval_occ_gating_mode: soft
+eval_occ_upsampling: trilinear
+eval_occ_soft_k: 12.0
+
+value_space: log1p
+log1p_scale: 0.02
+log1p_dequant_delta: 0.0
+p2_k: 1.0
+p2_gamma: 1.0
+p2_normalize: true
+occ_tau: 10.0
+occ_t_weighting: alpha_bar

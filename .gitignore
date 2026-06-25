@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.log_cache/
+dummy_data/
+runs/
+results/
+outputs/
+*.pt
+*.safetensors
+*.vdb
