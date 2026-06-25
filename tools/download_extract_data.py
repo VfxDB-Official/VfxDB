@@ -23,8 +23,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--categories",
         nargs="+",
-        default=[DEFAULT_CATEGORY],
-        help=f"Categories to download. Default: {DEFAULT_CATEGORY}.",
+        default=None,
+        help=f"Categories to download. Default: {DEFAULT_CATEGORY}, unless --folders is provided.",
+    )
+    parser.add_argument(
+        "--folders",
+        nargs="*",
+        default=None,
+        help="Explicit category folders to download, e.g. SurfaceFire:24 VortexColumn:360.",
     )
     parser.add_argument("--all-categories", action="store_true", help="Use every category listed in dataset_index.json.")
     parser.add_argument(
@@ -120,11 +126,33 @@ def sample_folder(sample: dict) -> str:
     raise RuntimeError(f"sample has no folder or volume path: {sample}")
 
 
-def selected_archive_paths(download_dir: Path, categories: list[str], max_samples_per_category: int) -> tuple[list[str], dict[str, int]]:
+def parse_folder_specs(specs: list[str] | None) -> dict[str, list[str]]:
+    out: dict[str, list[str]] = {}
+    for spec in specs or []:
+        if ":" not in spec:
+            raise RuntimeError(f"bad --folders spec '{spec}', expected Category:folder")
+        category, folder = spec.split(":", 1)
+        category = category.strip()
+        folder = folder.strip().strip("/")
+        if not category or not folder:
+            raise RuntimeError(f"bad --folders spec '{spec}', expected Category:folder")
+        out.setdefault(category, [])
+        if folder not in out[category]:
+            out[category].append(folder)
+    return out
+
+
+def selected_archive_paths(
+    download_dir: Path,
+    categories: list[str],
+    max_samples_per_category: int,
+    folder_specs: dict[str, list[str]] | None = None,
+) -> tuple[list[str], dict[str, int]]:
     remote_paths: list[str] = []
     selected_counts: dict[str, int] = {}
     seen: set[str] = set()
     limit = max(0, int(max_samples_per_category))
+    folder_specs = folder_specs or {}
 
     for category in categories:
         index_path = download_dir / category / "category_index.json"
@@ -133,7 +161,15 @@ def selected_archive_paths(download_dir: Path, categories: list[str], max_sample
         if not isinstance(samples, list) or not samples:
             raise RuntimeError(f"{index_path} has no samples")
 
-        selected = samples if limit <= 0 else samples[:limit]
+        forced_folders = folder_specs.get(category)
+        if forced_folders:
+            forced = set(forced_folders)
+            selected = [s for s in samples if isinstance(s, dict) and sample_folder(s) in forced]
+            if not selected:
+                raise RuntimeError(f"{index_path} has no samples in folders={forced_folders}")
+        else:
+            selected = samples if limit <= 0 else samples[:limit]
+
         selected_counts[category] = len(selected)
         for sample in selected:
             if not isinstance(sample, dict):
@@ -227,10 +263,22 @@ def main() -> int:
 
     dataset_index = load_json(download_dir / "dataset_index.json")
     all_categories = [str(c) for c in dataset_index.get("categories", []) if not str(c).startswith("_")]
-    categories = all_categories if args.all_categories else [str(c) for c in args.categories]
+    folder_specs = parse_folder_specs(args.folders)
+    if args.all_categories:
+        categories = all_categories
+    elif args.categories is not None:
+        categories = [str(c) for c in args.categories]
+    elif folder_specs:
+        categories = list(folder_specs.keys())
+    else:
+        categories = [DEFAULT_CATEGORY]
+
     unknown = [c for c in categories if c not in all_categories]
     if unknown:
         raise RuntimeError(f"unknown categories: {unknown}. Available: {all_categories}")
+    unknown_folder_cats = [c for c in folder_specs if c not in categories]
+    if unknown_folder_cats:
+        raise RuntimeError(f"--folders categories not selected: {unknown_folder_cats}")
 
     index_files = [f"{category}/category_index.json" for category in categories]
     run_hf_download(
@@ -242,7 +290,12 @@ def main() -> int:
     )
     copy_index_files(download_dir, data_root, categories)
 
-    archive_paths, selected_counts = selected_archive_paths(download_dir, categories, args.max_samples_per_category)
+    archive_paths, selected_counts = selected_archive_paths(
+        download_dir,
+        categories,
+        args.max_samples_per_category,
+        folder_specs=folder_specs,
+    )
     print(f"[select] categories={categories}")
     print(f"[select] selected_indexed_samples={selected_counts}")
     print(f"[select] archive_count={len(archive_paths)}")

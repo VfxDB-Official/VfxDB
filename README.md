@@ -16,6 +16,8 @@ pip install -r requirements-core.txt
 
 For CUDA, install the matching PyTorch wheel for your machine first, then install the remaining requirements. The public `.vdb` data requires the separately released `vdb_ext` extension to be built or installed in the same Python environment.
 
+`vdb_ext` source and build instructions: <https://github.com/ghosard/vdb_ext>
+
 `vdb_ext` must be built against compatible OpenVDB/NanoVDB/Boost/TBB libraries, and those shared libraries must be visible at runtime, for example through `LD_LIBRARY_PATH` or the system loader cache.
 
 The download helpers use the Hugging Face `hf` CLI and `tar`; extracting the metadata archive also requires `zstd`.
@@ -74,9 +76,44 @@ root/
 
 Each `.npz` file must contain `vol` with shape `[D, H, W]`. Optional `occ`, `leaf_base`, and `lvl_sizes` keys are supported.
 
+## Small VDB Smoke
+
+This downloads indexes, one small real VDB archive, and metadata for a quick SurfaceFire run:
+
+```bash
+python tools/download_extract_data.py \
+  --data-root data/vdbset \
+  --folders SurfaceFire:24
+```
+
+With a local proxy:
+
+```bash
+python tools/download_extract_data.py \
+  --data-root data/vdbset \
+  --folders SurfaceFire:24 \
+  --proxy http://127.0.0.1:7890
+```
+
+`SurfaceFire:24` currently selects `archives/SurfaceFire/24.tar`, about 45 MB, and provides 120 indexed VDB samples.
+
+After `vdb_ext` is installed, run a short conditional static training job:
+
+```bash
+./sh/run_train_cond_static_32.sh \
+  --data-root data/vdbset \
+  --categories "[SurfaceFire]" \
+  --max-train-samples 100 \
+  --train-steps 1 \
+  --batch-size 1 \
+  --num-workers 0 \
+  --eval-every 1000000 \
+  --ckpt-every 1000000
+```
+
 ## 1000 VDB Example
 
-This downloads indexes, selected data archives, and metadata for a small CloudWave run:
+For a larger CloudWave run:
 
 ```bash
 python tools/download_extract_data.py \
@@ -97,7 +134,7 @@ python tools/download_extract_data.py \
 
 The downloader selects the folder tar archives needed by the first indexed samples. For CloudWave at 1000 samples, this currently selects 9 archives under `archives/CloudWave/`.
 
-After `vdb_ext` is installed, run a short conditional static training job:
+Then run:
 
 ```bash
 ./sh/run_train_cond_static_32.sh \
