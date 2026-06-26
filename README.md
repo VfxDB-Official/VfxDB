@@ -38,8 +38,9 @@ python -m pip install --upgrade pip
 python -m pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cu124
 python -m pip install -r requirements-core.txt
 
-# 3. Install the prebuilt VDB runtime (Linux x86_64 / CPython 3.10)
-cp prebuilt/linux-x86_64-py310/*.so* "$(python -c 'import site; print(site.getsitepackages()[0])')"/
+# 3. Download & install the prebuilt VDB runtime (Linux x86_64 / CPython 3.10)
+curl -L https://github.com/VfxDB-Official/VfxDB/releases/download/prebuilt-v1/vdb_ext-runtime-linux-x86_64-py310.tar.gz \
+  | tar -xz -C "$(python -c 'import site; print(site.getsitepackages()[0])')"
 
 # 4. Smoke test: no data download needed
 ./sh/train_dummy_static.sh
@@ -62,7 +63,6 @@ details (including the source build for non-Linux / non-py310 platforms), then
 | `configs/` | Training and inference YAML configs. |
 | `sh/` | Runnable shell wrappers for the released settings. |
 | `tools/` | Dataset download, extraction, metadata, and dummy-data helpers. |
-| `prebuilt/` | Prebuilt `openvdb` / `vdb_ext` runtime (Linux x86_64 / CPython 3.10). |
 | `requirements-core.txt` | Python packages required for training and inference. |
 | `requirements-render.txt` | Optional packages for richer visual evaluation/rendering. |
 
@@ -93,11 +93,14 @@ python -m pip install -r requirements-render.txt
 ### 3. VDB runtime (`openvdb` + `vdb_ext`)
 
 The public `.vdb` data is loaded through `openvdb` and `vdb_ext`, which must be importable in the
-same Python environment. On **Linux x86_64 / CPython 3.10**, use the bundled prebuilt binaries
-(extension modules + their OpenVDB/TBB/Boost runtime libraries, with RPATH set for same-directory loading):
+same Python environment. On **Linux x86_64 / CPython 3.10**, download the prebuilt bundle from the
+[releases page](https://github.com/VfxDB-Official/VfxDB/releases/tag/prebuilt-v1) — it contains the
+extension modules plus their OpenVDB/TBB/Boost runtime libraries, with RPATH set for same-directory
+loading — and extract it into your `site-packages`:
 
 ```bash
-cp prebuilt/linux-x86_64-py310/*.so* "$(python -c 'import site; print(site.getsitepackages()[0])')"/
+curl -L https://github.com/VfxDB-Official/VfxDB/releases/download/prebuilt-v1/vdb_ext-runtime-linux-x86_64-py310.tar.gz \
+  | tar -xz -C "$(python -c 'import site; print(site.getsitepackages()[0])')"
 ```
 
 On other platforms, build `vdb_ext` from source — see
