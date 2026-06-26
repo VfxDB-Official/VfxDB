@@ -30,9 +30,13 @@ System tools used by the scripts:
 - `git`
 - `tar`
 - `zstd`
-- CMake, Ninja, and a C++ compiler for building `vdb_ext`
+- CMake, Ninja, and a C++ compiler if building `vdb_ext` from source
 
-The public `.vdb` data is loaded through `vdb_ext`, which must be installed in the same Python environment:
+The public `.vdb` data is loaded through `openvdb` and `vdb_ext`, which must be importable in the same Python environment. This repository includes a prebuilt Linux x86_64 / CPython 3.10 bundle under `prebuilt/linux-x86_64-py310/`. The bundle contains the Python extension modules plus their OpenVDB/TBB/Boost runtime libraries, with RPATH set for same-directory loading.
+
+Use the source build path below if you are not on Linux x86_64 with CPython 3.10.
+
+`vdb_ext` source repository:
 
 <https://github.com/ghosard/vdb_ext>
 
@@ -103,7 +107,25 @@ Optional rendering/evaluation extras:
 python -m pip install -r requirements-render.txt
 ```
 
-Install `vdb_ext` from source in the same environment:
+Install the prebuilt `openvdb` / `vdb_ext` bundle:
+
+```bash
+SITE_PACKAGES="$(python - <<'PY'
+import site
+print(site.getsitepackages()[0])
+PY
+)"
+cp prebuilt/linux-x86_64-py310/*.so* "$SITE_PACKAGES"/
+
+python - <<'PY'
+import openvdb
+import vdb_ext
+print("openvdb", openvdb.__file__)
+print("vdb_ext", vdb_ext.__file__)
+PY
+```
+
+Or build `vdb_ext` from source in the same environment:
 
 ```bash
 git clone https://github.com/ghosard/vdb_ext.git /tmp/vdb_ext
@@ -131,12 +153,14 @@ Check the environment:
 python - <<'PY'
 import sys
 import torch
+import openvdb
 import vdb_ext
 
 print("python", sys.version.split()[0])
 print("torch", torch.__version__)
 print("torch cuda", torch.version.cuda)
 print("cuda available", torch.cuda.is_available())
+print("openvdb", openvdb.__file__)
 print("vdb_ext", vdb_ext.__file__)
 PY
 ```
