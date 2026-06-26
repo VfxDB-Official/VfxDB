@@ -17,6 +17,9 @@ categories: null
 train_ratio: 0.8
 val_ratio: 0.1
 test_ratio: 0.1
+# Caps applied AFTER the train/val/test split. max_train_samples bounds the training
+# set size even if more data is available on disk; set to 0 (or any <=0) for no cap,
+# i.e. train on every available sample (full-dataset training).
 max_train_samples: 200000
 max_val_samples: 20
 max_test_samples: 20
