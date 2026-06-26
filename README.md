@@ -125,6 +125,10 @@ The downloader fetches `dataset_index.json`, the selected `category_index.json` 
 VDB tar archives, and (by default) a small metadata archive. The released training configs do not
 require metadata (`require_meta: false`).
 
+By default the downloader is intentionally conservative: with no selection flags it pulls a **single
+category** (`CloudWave`) capped at **1000 samples per category** — enough to try a run without
+accidentally downloading the whole (large) dataset. Use the flags below to control the scope.
+
 ```bash
 # Small real VDB smoke dataset (24 SurfaceFire samples)
 python tools/download_extract_data.py --data-root data/vdbset --folders SurfaceFire:24
@@ -133,11 +137,21 @@ python tools/download_extract_data.py --data-root data/vdbset --folders SurfaceF
 python tools/download_extract_data.py --data-root data/vdbset \
   --categories CloudWave --max-samples-per-category 1000
 
+# Full dataset: every category, every sample (large — see --plan-only first)
+python tools/download_extract_data.py --data-root data/vdbset --all
+
+# Preview what --all would fetch (categories + archive count) without downloading:
+python tools/download_extract_data.py --data-root data/vdbset --all --plan-only
+
 # Behind a local proxy: add --proxy http://127.0.0.1:7890
 # Skip metadata (indexes + VDB only): add --skip-meta
 # Metadata only:
 python tools/download_extract_meta.py --data-root data/vdbset
 ```
+
+> `--all` is shorthand for `--all-categories --max-samples-per-category 0` (where `0` means "no
+> per-category cap"). To scope to specific categories at full depth, combine
+> `--categories A B --max-samples-per-category 0`.
 
 Expected extracted layout:
 
@@ -169,11 +183,28 @@ Released training wrappers (`*_static_32` / `*_temporal_32` use `accelerate laun
 ./sh/run_train_uncond_static_32.sh --data-root data/vdbset   # unconditional, static
 ```
 
-Control process count and mixed precision via environment variables:
+Control process count and mixed precision via environment variables. `NUM_PROCESSES` sets the number
+of (GPU) processes for `accelerate launch`; `batch_size` in the config is **per process**, so the
+effective global batch is `batch_size × NUM_PROCESSES` (the trainer does not split batches across
+processes):
 
 ```bash
-NUM_PROCESSES=1 MIXED_PRECISION=fp16 ./sh/run_train_cond_static_32.sh --data-root data/vdbset
+# 8-GPU launch; per-process batch 8 → global batch 64
+NUM_PROCESSES=8 MIXED_PRECISION=fp16 ./sh/run_train_cond_static_32.sh --data-root data/vdbset
 ```
+
+> **Training on the full dataset.** Training is fully config-driven. The configs cap the training
+> set at `max_train_samples: 200000` (applied after the train/val/test split), so downloading more
+> data does not by itself train on more. To use every available sample, set `max_train_samples: 0`
+> (`0` = no cap) in the config you are running, e.g. `configs/train_static_32.yaml`. Then:
+>
+> ```bash
+> python tools/download_extract_data.py --data-root data/vdbset --all
+> NUM_PROCESSES=8 MIXED_PRECISION=fp16 ./sh/run_train_cond_static_32.sh --data-root data/vdbset
+> ```
+>
+> Resume an interrupted run by pointing `--resume` at a checkpoint directory under
+> `runs/<setting>/<experiment>/ckpt/`.
 
 Short SurfaceFire smoke run (1 step):
 

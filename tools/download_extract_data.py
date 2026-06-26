@@ -35,10 +35,17 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--all-categories", action="store_true", help="Use every category listed in dataset_index.json.")
     parser.add_argument(
+        "--all",
+        action="store_true",
+        help="Download the entire dataset: every category and every sample. "
+        "Shorthand for --all-categories --max-samples-per-category 0.",
+    )
+    parser.add_argument(
         "--max-samples-per-category",
         type=int,
         default=1000,
-        help="Select enough folder archives to cover this many indexed samples per category. Default: 1000.",
+        help="Select enough folder archives to cover this many indexed samples per category. "
+        "Use 0 for no limit (all samples). Default: 1000.",
     )
     parser.add_argument(
         "--download-dir",
@@ -317,6 +324,11 @@ def main() -> int:
     dataset_index = load_json(download_dir / "dataset_index.json")
     all_categories = [str(c) for c in dataset_index.get("categories", []) if not str(c).startswith("_")]
     folder_specs = parse_folder_specs(args.folders)
+    max_samples_per_category = args.max_samples_per_category
+    if args.all:
+        # Whole dataset: every category, no per-category sample cap.
+        args.all_categories = True
+        max_samples_per_category = 0
     if args.all_categories:
         categories = all_categories
     elif args.categories is not None:
@@ -346,7 +358,7 @@ def main() -> int:
     archive_paths, selected_counts = selected_archive_paths(
         download_dir,
         categories,
-        args.max_samples_per_category,
+        max_samples_per_category,
         folder_specs=folder_specs,
     )
     print(f"[select] categories={categories}")
