@@ -12,6 +12,12 @@ The models here are class-conditional (classifier-free guidance) 3D diffusion mo
 - 📦 Dataset: <https://huggingface.co/datasets/ryogishiki/VfxDB>
 - 📄 Paper: *coming soon*
 
+TODO:
+-[x] Dataset Release: <https://huggingface.co/datasets/ryogishiki/VfxDB>
+-[x] Training/Inference Code
+-[ ] Pretrained Checkpoints
+-[ ] Better dataset integration 
+
 ## Contents
 
 - [Quick Start](#quick-start)
