@@ -297,8 +297,3 @@ Re-run the [verify step](#verify-the-installation). The most common cause is tha
 `.so` files were copied to the wrong `site-packages`, or the OpenVDB runtime libraries are not on
 the loader path. Confirm the active interpreter is the `vfxdb` env (`which python`).
 
-### Project website
-
-The website (`index.html`, `static/`) lives on the
-[`gh-pages`](https://github.com/VfxDB-Official/VfxDB/tree/gh-pages) branch and is served by GitHub
-Pages at <https://vfxdb-official.github.io/VfxDB/>. It is not part of the code branches.
