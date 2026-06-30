@@ -292,6 +292,91 @@
 <!-- End paper abstract -->
 
 
+<!-- Contributions / Highlights -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3">Contributions</h2>
+    <div class="contrib-grid">
+      <div class="contrib-card">
+        <div class="contrib-icon"><i class="fas fa-database"></i></div>
+        <h3>A 1M-sample VFX-VDB sequence dataset</h3>
+        <p>The first million-level curated corpus of parametric OpenVDB sequences spanning 11 categories, with standardized canonicalization, production metadata, and a unified serialization format for reliable large-scale training.</p>
+      </div>
+      <div class="contrib-card">
+        <div class="contrib-icon"><i class="fas fa-clipboard-check"></i></div>
+        <h3>A reproducible benchmark protocol</h3>
+        <p>A frozen evaluation suite for unconditional, class-conditioned, and temporal generation. The protocol pairs perceptual metrics with a structural iso-surface diagnostic that penalizes non-physical topology.</p>
+      </div>
+      <div class="contrib-card">
+        <div class="contrib-icon"><i class="fas fa-cubes"></i></div>
+        <h3>A VDB-native reference model</h3>
+        <p>To our knowledge, the first generative training framework built entirely on OpenVDB data, equipped with our <em>Atomic-Continuous</em> prior &mdash; a strong, reproducible anchor for the bimodal statistics of sparse volumes.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- End contributions -->
+
+
+<!-- Dataset -->
+<section class="section hero is-light">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3">Dataset</h2>
+
+    <div class="stat-grid">
+      <div class="stat-card"><span class="stat-num">9,110</span><span class="stat-label">OpenVDB sequences</span></div>
+      <div class="stat-card"><span class="stat-num">1.028M</span><span class="stat-label">frames</span></div>
+      <div class="stat-card"><span class="stat-num">11</span><span class="stat-label">phenomenon categories</span></div>
+      <div class="stat-card"><span class="stat-num">3</span><span class="stat-label">fluid regimes</span></div>
+    </div>
+
+    <div class="content has-text-justified">
+      <p>
+        <strong>VfxDB</strong> is a production-aligned corpus of VFX volumetric assets stored as OpenVDB grids. Rather than
+        proposing new simulation algorithms, it contributes a <em>standardized, audit-friendly data release</em> paired with a
+        <em>frozen training/evaluation specification</em> that enables consistent benchmarking across methods and over time.
+      </p>
+    </div>
+
+    <div class="info-cards">
+      <div class="info-card">
+        <h4><i class="fas fa-layer-group"></i> Three fluid regimes</h4>
+        <ul>
+          <li><strong>Explosive &amp; Buoyant</strong> &mdash; e.g. <em>BuoyantExplosion</em>, <em>Ringblast</em>: high-velocity expansion and rapid thermal advection.</li>
+          <li><strong>Dissipative &amp; Laminar</strong> &mdash; e.g. <em>SmokePlume</em>, <em>ViscousFlow</em>: smooth motion and detailed dissipation.</li>
+          <li><strong>Environmental &amp; Chaotic</strong> &mdash; e.g. <em>AtmosphericFog</em>, <em>IsotropicBurst</em>: unconstrained, high-entropy fields.</li>
+        </ul>
+      </div>
+      <div class="info-card">
+        <h4><i class="fas fa-sliders-h"></i> Physically-based parameterization</h4>
+        <p>A fully procedural pipeline (Houdini, Sparse Pyro for gases, FLIP for liquids) where each category is a master recipe and variability is injected through sampled physical controls:</p>
+        <ul>
+          <li><strong>Emitter dynamics</strong> &mdash; source shape, emission rate, initial velocity.</li>
+          <li><strong>Fluid solvers</strong> &mdash; buoyancy, viscosity, turbulence, dissipation.</li>
+          <li><strong>External forces</strong> &mdash; randomized wind fields and vortex confinement.</li>
+        </ul>
+      </div>
+      <div class="info-card">
+        <h4><i class="fas fa-fingerprint"></i> Release format &amp; auditability</h4>
+        <p>Raw OpenVDB sequences with complete hash IDs and metadata. Each frame carries at minimum a floating-point density
+        grid (background fixed to 0); world-space transforms and optional auxiliary grids (velocity/temperature) are preserved
+        when available. Per-sequence manifests, version tags, and deterministic identifiers form an immutable snapshot.</p>
+        <p class="license-line"><i class="fas fa-balance-scale"></i> Released under <strong>CC BY-NC 4.0</strong> for research and benchmarking.</p>
+      </div>
+    </div>
+
+    <div class="content has-text-justified">
+      <p>
+        Production assets exhibit extreme dynamic ranges. After calibration to <span class="mono">32&sup3;</span> dense grids,
+        the non-zero mean clusters around 1 while the overall mean drops below 0.1 (often 0.01) &mdash; a sharply
+        <strong>heavy-tailed, sparse</strong> distribution in both spatial occupancy (active-voxel ratio) and temporal duration.
+      </p>
+    </div>
+  </div>
+</section>
+<!-- End dataset -->
+
+
 <!-- Image carousel -->
 <section class="hero is-small">
   <div class="hero-body">
@@ -342,6 +427,168 @@
 </div>
 </section>
 <!-- End image carousel -->
+
+
+<!-- Benchmark Protocol -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3">Benchmark Protocol</h2>
+    <div class="content has-text-justified">
+      <p>
+        We benchmark generative modeling of <em>density-only</em> production VFX volumes across three evaluation tracks aligned
+        with common workflows. Evaluation is <strong>distributional</strong>: discrepancies between generated samples and a
+        held-out reference set are measured under a <em>frozen, versioned</em> specification, so every method is compared under
+        identical preprocessing and observation.
+      </p>
+    </div>
+
+    <div class="track-grid">
+      <div class="track-card"><span class="track-tag">Track 1</span><h4>Unconditional static</h4><p>Single-frame density-volume generation with no conditioning.</p></div>
+      <div class="track-card"><span class="track-tag">Track 2</span><h4>Class-conditioned static</h4><p>Generate a volume that matches a discrete phenomenon label.</p></div>
+      <div class="track-card"><span class="track-tag">Track 3</span><h4>Temporal</h4><p>Generate temporally consistent volume sequences for a label.</p></div>
+    </div>
+
+    <h3 class="subhead">Frozen evaluation mapping</h3>
+    <div class="pipeline">
+      <span class="pipe-step">Raw VDB <span class="pipe-x">x</span></span>
+      <span class="pipe-arrow">&rarr;<span class="pipe-op">C<sub>R</sub></span></span>
+      <span class="pipe-step">Canonical volume <span class="pipe-x">v</span></span>
+      <span class="pipe-arrow">&rarr;<span class="pipe-op">O</span></span>
+      <span class="pipe-step">Observation <span class="pipe-x">y</span></span>
+      <span class="pipe-arrow">&rarr;<span class="pipe-op">&phi;</span></span>
+      <span class="pipe-step">Features <span class="pipe-x">f</span></span>
+      <span class="pipe-arrow">&rarr;<span class="pipe-op">M</span></span>
+      <span class="pipe-step">Scores</span>
+    </div>
+    <div class="content has-text-justified">
+      <p>
+        <strong>Canonicalization</strong> maps each raw grid into a unified cubic domain at a fixed resolution
+        (<span class="mono">R = 128</span>): active-voxel ROI &rarr; cube padding with background 0 &rarr; value domain
+        <span class="mono">d &isin; [0,1]</span> with negative/NaN handling. The <strong>observation model</strong> renders each
+        canonical volume at <span class="mono">512&times;512</span> under deterministic cameras and a fixed, aggressive
+        density-to-optical mapping (4-view protocol) that <em>exposes</em> rather than hides low-density wisps &mdash; preventing
+        methods from masking artifacts behind favorable transfer functions.
+      </p>
+    </div>
+
+    <h3 class="subhead">Metrics</h3>
+    <div class="metric-grid">
+      <div class="metric-card"><h4>Perceptual fidelity</h4><p><strong>Multi-view KID</strong> (static, unbiased estimator suited to small VFX sets) and <strong>FVD</strong> (temporal coherence &amp; motion realism).</p></div>
+      <div class="metric-card"><h4>Structural integrity</h4><p>Set-level <strong>MMD</strong> penalizes &ldquo;density hacking&rdquo; &mdash; volumes that render plausibly in 2D but lack coherent 3D boundaries.</p></div>
+      <div class="metric-card"><h4>Semantic alignment</h4><p><strong>CLIP-Text</strong> measures agreement between rendered output and the target phenomenon label.</p></div>
+    </div>
+  </div>
+</section>
+<!-- End benchmark protocol -->
+
+
+<!-- Method -->
+<section class="section hero is-light">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3">Method: Atomic-Continuous Priors</h2>
+    <div class="content has-text-justified">
+      <p>
+        Volumetric scalar fields follow a <strong>bimodal</strong> distribution &mdash; a mixture of exact zero-values (empty
+        space) and heavy-tailed continuous densities on the signal support. We model voxel density with an
+        <em>Atomic-Continuous</em> prior, <span class="mono">p(x) = &pi;<sub>0</sub>&delta;<sub>0</sub>(x) + (1&minus;&pi;<sub>0</sub>) p<sub>ac</sub>(x)</span>.
+        Standard Gaussian diffusion cannot resolve this duality, failing through <em>spectral collapse</em> (smoothed-out wisps)
+        and <em>topology leakage</em> (mass that never converges to the zero-atom).
+      </p>
+    </div>
+
+    <div class="method-grid">
+      <div class="method-card">
+        <h4><i class="fas fa-wave-square"></i> Amplitude Companded Score Space</h4>
+        <p>A bijective log-linear mapping preconditions the score network. Acting as a <strong>gradient rescaler</strong>, it scales
+        the back-propagated error by <span class="mono">(1 + &lambda;x&#771;)<sup>&minus;1</sup></span>, amplifying gradients for
+        wispy low-density structures relative to dense cores.</p>
+      </div>
+      <div class="method-card">
+        <h4><i class="fas fa-bullseye"></i> Atomic Mass Support Supervision</h4>
+        <p>Explicitly enforces the sparsity atom via a value-fidelity term over the active support, a Beer&ndash;Lambert occupancy
+        proxy for coarse topology, and a null-space leakage penalty that drives density to zero outside the boundary.</p>
+      </div>
+      <div class="method-card">
+        <h4><i class="fas fa-stream"></i> Markovian Temporal Conditioning</h4>
+        <p>Sequences are factorized under a local Markov assumption. The previous volume state is concatenated channel-wise with
+        the noisy input, learning advection through shared spatial kernels &mdash; temporal coherence at the cost of single-frame synthesis.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- End method -->
+
+
+<!-- Results -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3">Results</h2>
+
+    <figure class="result-figure">
+      <img src="static/images/figures/QualityVis.png" alt="Qualitative comparison of generated volumes" loading="lazy">
+      <figcaption><strong>Qualitative generation.</strong> Our method best preserves native VDB sparsity and continuity. TRELLIS conversions show mesh-induced jagged artifacts; Flux and Stable Diffusion, despite stronger semantic priors, fail to recover the intrinsic sparse VDB structure.</figcaption>
+    </figure>
+
+    <h3 class="subhead">Static generation</h3>
+    <div class="table-wrap">
+      <table class="result-table">
+        <thead>
+          <tr><th>Method</th><th>MMD-R&nbsp;&darr;</th><th>MMD-G&nbsp;&darr;</th><th>KID&nbsp;&darr;</th><th>CLIP-Text&nbsp;&uarr;</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Baseline</td><td>1.04</td><td>0.24</td><td>0.40</td><td>30.12</td></tr>
+          <tr><td>Baseline + A.C.</td><td>1.00</td><td>0.13</td><td>0.27</td><td>27.77</td></tr>
+          <tr><td>Flux-schnell</td><td>&ndash;</td><td>&ndash;</td><td>0.32</td><td><strong>30.90</strong></td></tr>
+          <tr><td>Stable-Diffusion-1.5</td><td>&ndash;</td><td>&ndash;</td><td>0.30</td><td>30.14</td></tr>
+          <tr><td>TRELLIS</td><td>1.01</td><td>0.33</td><td>0.40</td><td>30.47</td></tr>
+          <tr><td>Ours (con.)</td><td>0.98</td><td>0.14</td><td>0.20</td><td>28.82</td></tr>
+          <tr><td>Ours (con., RF)</td><td>1.03</td><td>0.19</td><td>0.21</td><td>29.05</td></tr>
+          <tr class="row-best"><td>Ours (unc.)</td><td><strong>0.96</strong></td><td><strong>0.02</strong></td><td><strong>0.13</strong></td><td>27.34</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="table-note">A.C.: Amplitude Companded Score Space; con./unc.: conditional/unconditional; RF: rectified-flow variant.</p>
+
+    <h3 class="subhead">Temporal generation</h3>
+    <div class="table-wrap">
+      <table class="result-table">
+        <thead>
+          <tr><th>Method</th><th>FVD&nbsp;&darr;</th><th>MMD-R&nbsp;&darr;</th><th>MMD-G&nbsp;&darr;</th><th>KID&nbsp;&darr;</th><th>CLIP-Text&nbsp;&uarr;</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>ZeroScope</td><td>5546</td><td>&ndash;</td><td>&ndash;</td><td>0.39</td><td>26.95</td></tr>
+          <tr><td>ModelScope</td><td>3333</td><td>&ndash;</td><td>&ndash;</td><td>0.34</td><td><strong>28.73</strong></td></tr>
+          <tr class="row-best"><td>Ours (temp)</td><td><strong>1345</strong></td><td><strong>0.99</strong></td><td><strong>0.13</strong></td><td><strong>0.18</strong></td><td>27.52</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="subhead">Human evaluation</h3>
+    <div class="content has-text-justified">
+      <p>A study with <strong>36 professional artists</strong> covered dataset-quality scoring and generated-result ranking. Experts
+      scored ground-truth assets on a 1&ndash;5 scale &mdash; <strong>4.41</strong> physics, <strong>4.31</strong> details,
+      <strong>4.37</strong> aesthetics, <strong>4.37</strong> LOD tier &mdash; indicating production-grade quality. Rankings of
+      generated results (lower is better) track the KID/MMD ordering above.</p>
+    </div>
+    <div class="table-wrap">
+      <table class="result-table">
+        <thead>
+          <tr><th>Method (generated)</th><th>Ours</th><th>Baseline + A.C.</th><th>TRELLIS</th><th>Baseline</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Avg. human rank&nbsp;&darr;</td><td class="cell-best"><strong>1.47</strong></td><td>2.56</td><td>2.73</td><td>3.15</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <figure class="result-figure">
+      <img src="static/images/figures/AblVis.png" alt="Visual ablation study" loading="lazy">
+      <figcaption><strong>Ablation.</strong> Left: vanilla diffusion shows noise and density leakage. Middle: Amplitude Companding sharpens details but leaves background noise. Right (ours): full AC + Atomic Mass yields the cleanest topology and preserved wispy structure &mdash; the best fidelity&ndash;sparsity balance.</figcaption>
+    </figure>
+  </div>
+</section>
+<!-- End results -->
+
 
 <!-- Video carousel -->
 <section class="hero is-small">
