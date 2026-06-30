@@ -1297,3 +1297,29 @@ main#main-content > section.hero:first-of-type {
 @media screen and (max-width: 900px) {
   .highlight-grid { grid-template-columns: 1fr; }
 }
+
+/* Two-up panels (e.g. the two user studies) */
+.dual-panel {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.panel-title {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--text-primary);
+  margin-bottom: 0.3rem;
+}
+
+.panel-sub {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.9rem;
+}
+
+@media screen and (max-width: 900px) {
+  .dual-panel { grid-template-columns: 1fr; }
+}

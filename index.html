@@ -584,21 +584,41 @@
     </div>
 
     <h3 class="subhead">Human evaluation</h3>
-    <div class="content has-text-justified">
-      <p>We also asked <strong>36 professional artists</strong> to rate the dataset and rank the generated results. On a 1&ndash;5
-      scale they scored the ground-truth assets <strong>4.41</strong> for physics, <strong>4.31</strong> for detail,
-      <strong>4.37</strong> for aesthetics, and <strong>4.37</strong> for level-of-detail &mdash; production-grade across the board.
-      Their ranking of generated results matches the KID and MMD numbers above.</p>
-    </div>
-    <div class="table-wrap">
-      <table class="result-table">
-        <thead>
-          <tr><th>Method (generated)</th><th>Ours</th><th>Baseline + A.C.</th><th>TRELLIS</th><th>Baseline</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>Avg. human rank&nbsp;&darr;</td><td class="cell-best"><strong>1.47</strong></td><td>2.56</td><td>2.73</td><td>3.15</td></tr>
-        </tbody>
-      </table>
+    <p class="section-lead">
+      We ran two studies with <strong>36 professional VFX artists</strong>: one rating the quality of the dataset assets, and
+      one ranking the generated results.
+    </p>
+
+    <div class="dual-panel">
+      <div class="panel">
+        <h4 class="panel-title">Study 1 &middot; Dataset quality</h4>
+        <p class="panel-sub">Experts scored the ground-truth assets on a 1&ndash;5 scale (higher is better).</p>
+        <div class="table-wrap">
+          <table class="result-table">
+            <thead>
+              <tr><th>Criterion</th><th>Physics</th><th>Details</th><th>Aesthetics</th><th>LOD&nbsp;tier</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Mean score&nbsp;&uarr;</td><td><strong>4.41</strong></td><td><strong>4.31</strong></td><td><strong>4.37</strong></td><td><strong>4.37</strong></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h4 class="panel-title">Study 2 &middot; Generated results</h4>
+        <p class="panel-sub">Experts ranked each method's output (lower average rank is better).</p>
+        <div class="table-wrap">
+          <table class="result-table">
+            <thead>
+              <tr><th>Method</th><th>Ours</th><th>Base&nbsp;+&nbsp;A.C.</th><th>TRELLIS</th><th>Baseline</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Avg. rank&nbsp;&darr;</td><td class="cell-best"><strong>1.47</strong></td><td>2.56</td><td>2.73</td><td>3.15</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
     <figure class="result-figure">
