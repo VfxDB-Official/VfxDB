@@ -5,59 +5,49 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   
   <!-- Primary Meta Tags -->
-  <!-- TODO: Replace with your paper title and author names -->
   <meta name="title" content="VfxDB: A Visual Effects Volume Dataset and Benchmark for VDB-Native Generative Modeling">
-  <!-- TODO: Write a compelling 150-160 character description of your research -->
   <meta name="description" content="A large-scale VDB/OpenVDB volumetric effects dataset and benchmark for reproducible VDB-native generative modeling research.">
-  <!-- TODO: Add 5-10 relevant keywords for your research area -->
   <meta name="keywords" content="VfxDB, VDB, OpenVDB, visual effects, volumetric generation, diffusion models, sparse volumes, 3D generation, benchmark">
-  <!-- TODO: List all authors -->
-  <meta name="author" content="FIRST_AUTHOR_NAME, SECOND_AUTHOR_NAME">
+  <meta name="author" content="Junwei Shu, Hantang Liu, Dawei Miao, Wenzheng Song, Mingyang Yuan, Wenjie Liu, Changgu Chen, Yang Li, Changbo Wang">
   <meta name="robots" content="index, follow">
   <meta name="language" content="English">
   
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="article">
-  <!-- TODO: Replace with your institution or lab name -->
-  <meta property="og:site_name" content="INSTITUTION_OR_LAB_NAME">
-  <!-- TODO: Same as paper title above -->
+  <meta property="og:site_name" content="East China Normal University">
   <meta property="og:title" content="VfxDB: A Visual Effects Volume Dataset and Benchmark for VDB-Native Generative Modeling">
-  <!-- TODO: Same as description above -->
   <meta property="og:description" content="A large-scale VDB/OpenVDB volumetric effects dataset and benchmark for reproducible VDB-native generative modeling research.">
-  <!-- TODO: Replace with your actual website URL -->
   <meta property="og:url" content="https://vfxdb-official.github.io/VfxDB/">
-  <!-- TODO: Create a 1200x630px preview image and update path -->
-  <meta property="og:image" content="https://YOUR_DOMAIN.com/static/images/social_preview.png">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="VfxDB - Research Preview">
-  <meta property="article:published_time" content="2024-01-01T00:00:00.000Z">
-  <meta property="article:author" content="FIRST_AUTHOR_NAME">
+  <meta property="og:image" content="https://vfxdb-official.github.io/VfxDB/static/images/main_image.jpg">
+  <meta property="og:image:alt" content="VfxDB teaser: production-aligned VDB dataset, benchmark, and VDB-native generative model">
+  <meta property="article:published_time" content="2026-07-19T00:00:00.000Z">
+  <meta property="article:author" content="Junwei Shu">
   <meta property="article:section" content="Research">
-  <meta property="article:tag" content="KEYWORD1">
-  <meta property="article:tag" content="KEYWORD2">
+  <meta property="article:tag" content="VDB">
+  <meta property="article:tag" content="Visual Effects">
+  <meta property="article:tag" content="Diffusion Generative Model">
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
-  <!-- TODO: Replace with your lab/institution Twitter handle -->
-  <meta name="twitter:site" content="@YOUR_TWITTER_HANDLE">
-  <!-- TODO: Replace with first author's Twitter handle -->
-  <meta name="twitter:creator" content="@AUTHOR_TWITTER_HANDLE">
-  <!-- TODO: Same as paper title above -->
   <meta name="twitter:title" content="VfxDB: A Visual Effects Volume Dataset and Benchmark for VDB-Native Generative Modeling">
-  <!-- TODO: Same as description above -->
   <meta name="twitter:description" content="A large-scale VDB/OpenVDB volumetric effects dataset and benchmark for reproducible VDB-native generative modeling research.">
-  <!-- TODO: Same as social preview image above -->
-  <meta name="twitter:image" content="https://YOUR_DOMAIN.com/static/images/social_preview.png">
-  <meta name="twitter:image:alt" content="VfxDB - Research Preview">
+  <meta name="twitter:image" content="https://vfxdb-official.github.io/VfxDB/static/images/main_image.jpg">
+  <meta name="twitter:image:alt" content="VfxDB teaser: production-aligned VDB dataset, benchmark, and VDB-native generative model">
 
   <!-- Academic/Research Specific -->
   <meta name="citation_title" content="VfxDB: A Visual Effects Volume Dataset and Benchmark for VDB-Native Generative Modeling">
-  <meta name="citation_author" content="FIRST_AUTHOR_LAST, FIRST_AUTHOR_FIRST">
-  <meta name="citation_author" content="SECOND_AUTHOR_LAST, SECOND_AUTHOR_FIRST">
-  <meta name="citation_publication_date" content="2024">
-  <meta name="citation_conference_title" content="CONFERENCE_NAME">
-  <meta name="citation_pdf_url" content="https://vfxdb-official.github.io/VfxDB/">
+  <meta name="citation_author" content="Shu, Junwei">
+  <meta name="citation_author" content="Liu, Hantang">
+  <meta name="citation_author" content="Miao, Dawei">
+  <meta name="citation_author" content="Song, Wenzheng">
+  <meta name="citation_author" content="Yuan, Mingyang">
+  <meta name="citation_author" content="Liu, Wenjie">
+  <meta name="citation_author" content="Chen, Changgu">
+  <meta name="citation_author" content="Li, Yang">
+  <meta name="citation_author" content="Wang, Changbo">
+  <meta name="citation_publication_date" content="2026">
+  <meta name="citation_conference_title" content="SIGGRAPH Conference Papers '26">
+  <meta name="citation_doi" content="10.1145/3799902.3811178">
   
   <!-- Additional SEO -->
   <meta name="theme-color" content="#2563eb">
@@ -73,7 +63,6 @@
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
 
 
-  <!-- TODO: Replace with your paper title and authors -->
   <title>VfxDB: A Visual Effects Volume Dataset and Benchmark for VDB-Native Generative Modeling</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E">
   
@@ -114,33 +103,35 @@
     "headline": "VfxDB: A Visual Effects Volume Dataset and Benchmark for VDB-Native Generative Modeling",
     "description": "A large-scale VDB/OpenVDB volumetric effects dataset and benchmark for reproducible VDB-native generative modeling research.",
     "author": [
-      {
-        "@type": "Person",
-        "name": "FIRST_AUTHOR_NAME",
-        "affiliation": {
-          "@type": "Organization",
-          "name": "INSTITUTION_NAME"
-        }
-      },
-      {
-        "@type": "Person",
-        "name": "SECOND_AUTHOR_NAME",
-        "affiliation": {
-          "@type": "Organization",
-          "name": "INSTITUTION_NAME"
-        }
-      }
+      { "@type": "Person", "name": "Junwei Shu", "affiliation": { "@type": "Organization", "name": "East China Normal University" } },
+      { "@type": "Person", "name": "Hantang Liu", "affiliation": { "@type": "Organization", "name": "KunByte" } },
+      { "@type": "Person", "name": "Dawei Miao", "affiliation": { "@type": "Organization", "name": "Independent Researcher" } },
+      { "@type": "Person", "name": "Wenzheng Song", "affiliation": { "@type": "Organization", "name": "East China Normal University" } },
+      { "@type": "Person", "name": "Mingyang Yuan", "affiliation": { "@type": "Organization", "name": "East China Normal University" } },
+      { "@type": "Person", "name": "Wenjie Liu", "affiliation": { "@type": "Organization", "name": "East China Normal University" } },
+      { "@type": "Person", "name": "Changgu Chen", "affiliation": { "@type": "Organization", "name": "East China Normal University" } },
+      { "@type": "Person", "name": "Yang Li", "affiliation": { "@type": "Organization", "name": "East China Normal University" } },
+      { "@type": "Person", "name": "Changbo Wang", "affiliation": { "@type": "Organization", "name": "East China Normal University" } }
     ],
-    "datePublished": "2024-01-01",
+    "datePublished": "2026-07-19",
     "publisher": {
       "@type": "Organization",
-      "name": "CONFERENCE_OR_JOURNAL_NAME"
+      "name": "Association for Computing Machinery"
+    },
+    "isPartOf": {
+      "@type": "PublicationEvent",
+      "name": "SIGGRAPH Conference Papers '26"
     },
     "url": "https://vfxdb-official.github.io/VfxDB/",
-    "image": "https://YOUR_DOMAIN.com/static/images/social_preview.png",
+    "sameAs": "https://doi.org/10.1145/3799902.3811178",
+    "image": "https://vfxdb-official.github.io/VfxDB/static/images/main_image.jpg",
     "keywords": ["VfxDB", "VDB", "OpenVDB", "visual effects", "volumetric generation", "diffusion models", "sparse volumes", "3D generation", "benchmark"],
     "abstract": "Volumetric effects such as smoke, fire, dust, and explosions are central to Visual Effects (VFX) production and are commonly represented as sparse, high-resolution VDB/OpenVDB sequences with dynamic topology. Despite rapid progress in diffusion-based 3D generation, work on sparse volumetric sequences remains difficult to compare and reproduce, due to the lack of large-scale, well organized datasets and standardized evaluation protocols. In this paper, we introduce a 1-million-sample VFX sequence of VDB dataset with standardized preprocessing, consistent metadata, and protocol-ready splits, together with a reproducible benchmark suite for both static volume generation and sequence volumes generation. We further provide an end-to-end evaluation pipeline and a scalable diffusion training framework, enabled by our Atomic-Continuous prior, which addresses the distributional mismatch between vanilla diffusion models and the intrinsic sparsity of VDB data. Our release establishes a practical infrastructure for reproducible research and systematic progress tracking in sparse volumetric sequence generation.",
-    "citation": "BIBTEX_CITATION_HERE",
+    "identifier": {
+      "@type": "PropertyValue",
+      "propertyID": "DOI",
+      "value": "10.1145/3799902.3811178"
+    },
     "isAccessibleForFree": true,
     "license": "https://creativecommons.org/licenses/by/4.0/",
     "mainEntity": {
@@ -148,28 +139,22 @@
       "@id": "https://vfxdb-official.github.io/VfxDB/"
     },
     "about": [
-      {
-        "@type": "Thing",
-        "name": "RESEARCH_AREA_1"
-      },
-      {
-        "@type": "Thing", 
-        "name": "RESEARCH_AREA_2"
-      }
+      { "@type": "Thing", "name": "Volumetric visual effects generation" },
+      { "@type": "Thing", "name": "Diffusion-based 3D generative modeling" }
     ]
   }
   </script>
-  
+
   <!-- Website/Organization Structured Data -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "Organization",
-    "name": "INSTITUTION_OR_LAB_NAME",
-    "url": "https://YOUR_INSTITUTION_WEBSITE.com",
+    "name": "East China Normal University",
+    "url": "https://www.ecnu.edu.cn/",
     "sameAs": [
-      "https://twitter.com/YOUR_TWITTER_HANDLE",
-      "https://github.com/YOUR_GITHUB_USERNAME"
+      "https://github.com/VfxDB-Official",
+      "https://huggingface.co/datasets/ryogishiki/VfxDB"
     ]
   }
   </script>
@@ -207,38 +192,46 @@
       <div class="container is-max-desktop">
         <div class="columns is-centered">
           <div class="column has-text-centered">
-            <!-- TODO: Replace with your paper title -->
             <h1 class="title is-1 publication-title">VfxDB: A Visual Effects Volume Dataset and Benchmark for VDB-Native Generative Modeling</h1>
             <div class="is-size-5 publication-authors">
-              <!-- TODO: Replace with your paper authors and their personal links -->
-              <span class="author-block">Anonymous</span>
+              <span class="author-block">Junwei Shu,</span>
+              <span class="author-block">Hantang Liu,</span>
+              <span class="author-block">Dawei Miao,</span>
+              <span class="author-block">Wenzheng Song,</span>
+              <span class="author-block">Mingyang Yuan,</span>
+              <span class="author-block">Wenjie Liu,</span>
+              <span class="author-block">Changgu Chen,</span>
+              <span class="author-block">Yang Li<sup>*</sup>,</span>
+              <span class="author-block">Changbo Wang</span>
             </div>
 
                   <div class="is-size-5 publication-authors">
-                    <span class="author-block">Anonymous Institution</span>
+                    <span class="author-block">East China Normal University &nbsp;&middot;&nbsp; KunByte &nbsp;&middot;&nbsp; Independent Researcher</span>
+                  </div>
+                  <div class="is-size-6 publication-authors">
+                    <span class="author-block"><sup>*</sup>Corresponding author</span>
                   </div>
 
                   <div class="column has-text-centered">
                     <div class="publication-links">
-                         <!-- TODO: Update with your arXiv paper ID -->
                       <span class="link-block">
-                        <a href="https://vfxdb-official.github.io/VfxDB/" target="_blank" rel="noopener noreferrer" data-resource-link="paper"
-                        class="external-link button is-normal is-rounded is-dark">
+                        <span class="external-link button is-normal is-rounded is-dark is-disabled" aria-disabled="true" data-resource-link="paper">
                         <span class="icon">
                           <i class="fas fa-file-pdf"></i>
                         </span>
                         <span>Paper</span>
-                      </a>
+                      </span>
+                      <span class="link-note">(Coming soon)</span>
                     </span>
 
                     <span class="link-block">
-                      <span class="external-link button is-normal is-rounded is-dark is-disabled" aria-disabled="true" data-resource-link="code">
+                      <a href="https://github.com/VfxDB-Official/VfxDB" target="_blank" rel="noopener noreferrer" data-resource-link="code"
+                      class="external-link button is-normal is-rounded is-dark">
                         <span class="icon">
                           <i class="fab fa-github"></i>
                         </span>
                         <span>Code</span>
-                      </span>
-                      <span class="link-note">(Pending final code review)</span>
+                      </a>
                   </span>
 
                   <span class="link-block">
@@ -249,7 +242,6 @@
                       </span>
                       <span>Dataset</span>
                     </a>
-                    <span class="link-note">(Syncing massive 5T VDB sequences to public server)</span>
                 </span>
             </div>
           </div>
@@ -264,7 +256,6 @@
 <section class="hero teaser">
   <div class="container is-max-desktop">
     <div class="hero-body">
-      <!-- TODO: Replace with your teaser video -->
       <img src="static/images/main_image.jpg" alt="Main project teaser image" style="width:100%; height:auto;">
     </div>
   </div>
@@ -278,7 +269,6 @@
       <div class="column is-four-fifths">
         <h2 class="title is-3">Abstract</h2>
         <div class="content has-text-justified">
-          <!-- TODO: Replace with your paper abstract -->
           <p>
             Volumetric effects such as smoke, fire, dust, and explosions are central to Visual Effects (VFX) production and are commonly represented as sparse, high-resolution VDB/OpenVDB sequences with dynamic topology. Despite rapid progress in diffusion-based 3D generation, work on sparse volumetric sequences remains difficult to compare and reproduce, due to the lack of large-scale, well organized datasets and standardized evaluation protocols. In this paper, we introduce a 1-million-sample VFX sequence of VDB dataset with standardized preprocessing, consistent metadata, and protocol-ready splits, together with a reproducible benchmark suite for both static volume generation and sequence volumes generation. We further provide an end-to-end evaluation pipeline and a scalable diffusion training framework, enabled by our Atomic-Continuous prior, which addresses the distributional mismatch between vanilla diffusion models and the intrinsic sparsity of VDB data. Our release establishes a practical infrastructure for reproducible research and systematic progress tracking in sparse volumetric sequence generation.
           </p>
@@ -349,7 +339,6 @@
       <div id="videos-carousel" class="carousel results-carousel">
         
         <div class="item item-video1">
-          <!-- TODO: Add poster image for better preview -->
           <video poster="" id="video1" controls muted loop height="100%" preload="metadata">
             <!-- Your video file here -->
             <source src="static/videos/IsotropicBurst.mp4" type="video/mp4">
@@ -357,7 +346,6 @@
         </div>
         
         <div class="item item-video2">
-          <!-- TODO: Add poster image for better preview -->
           <video poster="" id="video2" controls muted loop height="100%" preload="metadata">
             <!-- Your video file here -->
             <source src="static/videos/CloudWave.mp4" type="video/mp4">
@@ -365,7 +353,6 @@
         </div>
         
         <div class="item item-video3">
-          <!-- TODO: Add poster image for better preview -->
           <video poster="" id="video3" controls muted loop height="100%" preload="metadata">
             <!-- Your video file here -->
             <source src="static/videos/liquidSplash.mp4" type="video/mp4">
@@ -377,6 +364,25 @@
   </div>
 </section>
 <!-- End video carousel -->
+
+<!-- BibTeX citation -->
+<section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title is-3">BibTeX</h2>
+    <pre><code>@inproceedings{shu2026vfxdb,
+  title     = {VfxDB: A Visual Effects Volume Dataset and Benchmark for VDB-Native Generative Modeling},
+  author    = {Shu, Junwei and Liu, Hantang and Miao, Dawei and Song, Wenzheng and
+               Yuan, Mingyang and Liu, Wenjie and Chen, Changgu and Li, Yang and Wang, Changbo},
+  booktitle = {SIGGRAPH Conference Papers '26},
+  year      = {2026},
+  publisher = {Association for Computing Machinery},
+  doi       = {10.1145/3799902.3811178},
+  isbn      = {979-8-4007-2554-8},
+  url       = {https://vfxdb-official.github.io/VfxDB/}
+}</code></pre>
+  </div>
+</section>
+<!-- End BibTeX citation -->
 
   <footer class="footer">
   <div class="container">
