@@ -103,4 +103,13 @@ $(document).ready(function() {
     // Setup video autoplay for carousel
     setupVideoCarouselAutoplay();
 
+    // Touch devices have no hover: tap a collapsible card to expand/collapse it
+    if (window.matchMedia('(hover: none)').matches) {
+        document.querySelectorAll('.collapsible').forEach(function (card) {
+            card.addEventListener('click', function () {
+                card.classList.toggle('is-open');
+            });
+        });
+    }
+
 })

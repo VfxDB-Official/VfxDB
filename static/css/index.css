@@ -1140,3 +1140,56 @@ main#main-content > section.hero:first-of-type {
 @media screen and (max-width: 900px) {
   .dual-panel { grid-template-columns: 1fr; }
 }
+
+/* ===== Collapsible cards (hover on desktop, tap on touch) ===== */
+.collapsible { cursor: pointer; }
+
+.collapsible-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.collapsible-head h4 { margin-bottom: 0; }
+
+.reveal-chevron {
+  color: var(--text-light);
+  font-size: 0.85rem;
+  margin-top: 0.3rem;
+  flex-shrink: 0;
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.card-reveal {
+  max-height: 0;
+  opacity: 0;
+  margin-top: 0;
+  overflow: hidden;
+  transition: max-height 0.35s ease, opacity 0.3s ease, margin-top 0.3s ease;
+}
+
+.card-reveal p { margin: 0; }
+
+.collapsible.is-open .card-reveal {
+  max-height: 280px;
+  opacity: 1;
+  margin-top: 0.75rem;
+}
+
+.collapsible.is-open .reveal-chevron {
+  transform: rotate(180deg);
+  color: var(--primary-color);
+}
+
+@media (hover: hover) {
+  .collapsible:hover .card-reveal {
+    max-height: 280px;
+    opacity: 1;
+    margin-top: 0.75rem;
+  }
+  .collapsible:hover .reveal-chevron {
+    transform: rotate(180deg);
+    color: var(--primary-color);
+  }
+}

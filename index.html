@@ -425,9 +425,18 @@
     </div>
 
     <div class="track-grid">
-      <div class="track-card"><span class="track-tag">Track 1</span><h4>Unconditional static</h4><p>Single-frame density-volume generation with no conditioning.</p></div>
-      <div class="track-card"><span class="track-tag">Track 2</span><h4>Class-conditioned static</h4><p>Generate a volume that matches a discrete phenomenon label.</p></div>
-      <div class="track-card"><span class="track-tag">Track 3</span><h4>Temporal</h4><p>Generate temporally consistent volume sequences for a label.</p></div>
+      <div class="track-card collapsible">
+        <div class="collapsible-head"><div><span class="track-tag">Track 1</span><h4>Unconditional static</h4></div><i class="fas fa-chevron-down reveal-chevron" aria-hidden="true"></i></div>
+        <div class="card-reveal"><p>Single-frame density-volume generation with no conditioning.</p></div>
+      </div>
+      <div class="track-card collapsible">
+        <div class="collapsible-head"><div><span class="track-tag">Track 2</span><h4>Class-conditioned static</h4></div><i class="fas fa-chevron-down reveal-chevron" aria-hidden="true"></i></div>
+        <div class="card-reveal"><p>Generate a volume that matches a discrete phenomenon label.</p></div>
+      </div>
+      <div class="track-card collapsible">
+        <div class="collapsible-head"><div><span class="track-tag">Track 3</span><h4>Temporal</h4></div><i class="fas fa-chevron-down reveal-chevron" aria-hidden="true"></i></div>
+        <div class="card-reveal"><p>Generate temporally consistent volume sequences for a label.</p></div>
+      </div>
     </div>
 
     <h3 class="subhead">Frozen evaluation mapping</h3>
@@ -454,9 +463,18 @@
 
     <h3 class="subhead">Metrics</h3>
     <div class="metric-grid">
-      <div class="metric-card"><h4>Looks right</h4><p><strong>KID</strong> on rendered views (an unbiased score that works on small VFX sets) and <strong>FVD</strong> for motion in sequences.</p></div>
-      <div class="metric-card"><h4>Holds together in 3D</h4><p>Set-level <strong>MMD</strong> catches volumes that render fine from a few angles but have no coherent 3D shape underneath.</p></div>
-      <div class="metric-card"><h4>Matches the label</h4><p><strong>CLIP-Text</strong> checks that the rendered result matches the requested effect.</p></div>
+      <div class="metric-card collapsible">
+        <div class="collapsible-head"><h4>Looks right</h4><i class="fas fa-chevron-down reveal-chevron" aria-hidden="true"></i></div>
+        <div class="card-reveal"><p><strong>KID</strong> on rendered views (an unbiased score that works on small VFX sets) and <strong>FVD</strong> for motion in sequences.</p></div>
+      </div>
+      <div class="metric-card collapsible">
+        <div class="collapsible-head"><h4>Holds together in 3D</h4><i class="fas fa-chevron-down reveal-chevron" aria-hidden="true"></i></div>
+        <div class="card-reveal"><p>Set-level <strong>MMD</strong> catches volumes that render fine from a few angles but have no coherent 3D shape underneath.</p></div>
+      </div>
+      <div class="metric-card collapsible">
+        <div class="collapsible-head"><h4>Matches the label</h4><i class="fas fa-chevron-down reveal-chevron" aria-hidden="true"></i></div>
+        <div class="card-reveal"><p><strong>CLIP-Text</strong> checks that the rendered result matches the requested effect.</p></div>
+      </div>
     </div>
   </div>
 </section>
@@ -478,21 +496,21 @@
     </div>
 
     <div class="method-grid">
-      <div class="method-card">
-        <h4><i class="fas fa-wave-square"></i> Amplitude companding</h4>
-        <p>A reversible log mapping rebalances the training signal so dense cores stop dominating. It boosts the gradient on
+      <div class="method-card collapsible">
+        <div class="collapsible-head"><h4><i class="fas fa-wave-square"></i> Amplitude companding</h4><i class="fas fa-chevron-down reveal-chevron" aria-hidden="true"></i></div>
+        <div class="card-reveal"><p>A reversible log mapping rebalances the training signal so dense cores stop dominating. It boosts the gradient on
         faint, low-density structures by <span class="mono">(1 + &lambda;x&#771;)<sup>&minus;1</sup></span>, which is what keeps
-        thin wisps from being smoothed away.</p>
+        thin wisps from being smoothed away.</p></div>
       </div>
-      <div class="method-card">
-        <h4><i class="fas fa-bullseye"></i> Atomic mass supervision</h4>
-        <p>Keeps empty space empty. A soft occupancy target recovers the coarse shape, and a leakage penalty pushes density to
-        exactly zero outside the boundary, so the result stays as sparse as real VDB data.</p>
+      <div class="method-card collapsible">
+        <div class="collapsible-head"><h4><i class="fas fa-bullseye"></i> Atomic mass supervision</h4><i class="fas fa-chevron-down reveal-chevron" aria-hidden="true"></i></div>
+        <div class="card-reveal"><p>Keeps empty space empty. A soft occupancy target recovers the coarse shape, and a leakage penalty pushes density to
+        exactly zero outside the boundary, so the result stays as sparse as real VDB data.</p></div>
       </div>
-      <div class="method-card">
-        <h4><i class="fas fa-stream"></i> Temporal conditioning</h4>
-        <p>For sequences, the previous frame is simply stacked onto the input as an extra channel. The network learns motion
-        from it without any heavy 4D attention, so generating a sequence costs about the same as a single frame.</p>
+      <div class="method-card collapsible">
+        <div class="collapsible-head"><h4><i class="fas fa-stream"></i> Temporal conditioning</h4><i class="fas fa-chevron-down reveal-chevron" aria-hidden="true"></i></div>
+        <div class="card-reveal"><p>For sequences, the previous frame is simply stacked onto the input as an extra channel. The network learns motion
+        from it without any heavy 4D attention, so generating a sequence costs about the same as a single frame.</p></div>
       </div>
     </div>
   </div>
