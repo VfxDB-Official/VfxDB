@@ -1,5 +1,22 @@
 window.HELP_IMPROVE_VIDEOJS = false;
 
+// Collapsible cards: expand on hover (desktop, via CSS) and on click/tap.
+// Defined at the top and kept independent of jQuery, so it still runs even if
+// jQuery is blocked/slow (which would otherwise throw and halt the rest of the
+// script), and so cards still toggle on devices that report no hover support.
+function initCollapsibleCards() {
+    document.querySelectorAll('.collapsible').forEach(function (card) {
+        card.addEventListener('click', function () {
+            card.classList.toggle('is-open');
+        });
+    });
+}
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCollapsibleCards);
+} else {
+    initCollapsibleCards();
+}
+
 // Copy BibTeX to clipboard
 function copyBibTeX() {
     const bibtexElement = document.getElementById('bibtex-code');
@@ -102,14 +119,5 @@ $(document).ready(function() {
     
     // Setup video autoplay for carousel
     setupVideoCarouselAutoplay();
-
-    // Touch devices have no hover: tap a collapsible card to expand/collapse it
-    if (window.matchMedia('(hover: none)').matches) {
-        document.querySelectorAll('.collapsible').forEach(function (card) {
-            card.addEventListener('click', function () {
-                card.classList.toggle('is-open');
-            });
-        });
-    }
 
 })

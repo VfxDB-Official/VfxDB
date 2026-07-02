@@ -247,9 +247,6 @@
       <figure class="teaser-figure">
         <img src="static/images/main_image.jpg" alt="VfxDB teaser: diverse production-rendered VDB volumetric effects" loading="lazy">
       </figure>
-      <p class="teaser-caption">
-        A production-aligned VDB dataset, a generative-model evaluation benchmark, and a VDB-native training framework &mdash; generated volumes load directly into a DCC pipeline without post-cleaning.
-      </p>
     </div>
   </div>
 </section>
@@ -277,6 +274,12 @@
 <section class="section">
   <div class="container is-max-desktop">
     <h2 class="title is-3">Contributions</h2>
+
+    <figure class="result-figure overview-figure">
+      <img src="static/images/figures/Overview.png" alt="Overview of the VfxDB framework: dataset, benchmark, and VDB-native model" loading="lazy">
+      <figcaption><strong>Framework overview.</strong> VfxDB brings together a large-scale VDB dataset, a standardized benchmark, and a VDB-native generative model in one pipeline.</figcaption>
+    </figure>
+
     <div class="contrib-grid">
       <div class="contrib-card">
         <div class="contrib-icon"><i class="fas fa-database"></i></div>
@@ -347,6 +350,11 @@
       </div>
     </div>
 
+    <figure class="result-figure">
+      <img src="static/images/figures/DatasetDiversity.png" alt="VfxDB dataset diversity rendered in Blender and Houdini" loading="lazy">
+      <figcaption><strong>Diversity.</strong> The categories span a wide range of effects and stay visually consistent across common production renderers (Blender and Houdini).</figcaption>
+    </figure>
+
     <div class="content has-text-justified">
       <p>
         VFX volumes have a huge dynamic range. Calibrated to <span class="mono">32&sup3;</span> grids, the average over non-zero
@@ -355,61 +363,15 @@
         many orders of magnitude. That is exactly what makes it hard to generate.
       </p>
     </div>
+
+    <figure class="result-figure">
+      <img src="static/images/figures/VfxValueDistribution.png" alt="Sparse, heavy-tailed value distribution of VFX volumes" loading="lazy">
+      <figcaption><strong>Value distribution.</strong> Calibrated statistics show the sparse, heavy-tailed nature of the data: the non-zero mean sits near 1 while the overall mean collapses well below 0.1.</figcaption>
+    </figure>
   </div>
 </section>
 <!-- End dataset -->
 
-
-<!-- Image carousel -->
-<section class="hero is-small">
-  <div class="hero-body">
-    <div class="container">
-      <h2 class="title is-3 has-text-centered">Figures</h2>
-      <div id="figures-carousel" class="carousel results-carousel figure-carousel">
-        <div class="item">
-          <div class="figure-media overview-media">
-            <img src="static/images/figures/Overview.png" alt="Overview of the VfxDB framework" loading="lazy"/>
-          </div>
-          <h2 class="subtitle has-text-centered">
-            <span class="figure-caption-title">Framework Overview.</span>
-            VfxDB brings together a large-scale VDB dataset, a standardized benchmark, and a VDB-native generative modeling framework.
-          </h2>
-        </div>
-
-        <div class="item">
-          <div class="figure-media">
-            <img src="static/images/figures/DatasetDiversity.png" alt="VfxDB dataset diversity across rendering backends" loading="lazy"/>
-          </div>
-          <h2 class="subtitle has-text-centered">
-            <span class="figure-caption-title">Dataset Diversity.</span>
-            The dataset covers diverse VFX volume categories and remains visually consistent across common production rendering backends.
-          </h2>
-        </div>
-
-        <div class="item">
-          <div class="figure-media">
-            <img src="static/images/figures/VfxValueDistribution.png" alt="Sparse and heavy-tailed value distribution of VFX volumes" loading="lazy"/>
-          </div>
-          <h2 class="subtitle has-text-centered">
-            <span class="figure-caption-title">Value Distribution.</span>
-            Calibrated statistics highlight the sparse and heavy-tailed value distribution that makes VDB-native generation challenging.
-          </h2>
-        </div>
-
-        <div class="item">
-          <div class="figure-media">
-            <img src="static/images/figures/TrjectoryVis.png" alt="Denoising trajectory visualization across diffusion timesteps" loading="lazy"/>
-          </div>
-          <h2 class="subtitle has-text-centered">
-            <span class="figure-caption-title">Denoising Trajectory.</span>
-            Intermediate denoising states show how sparse volumetric structure emerges from noise during generation.
-          </h2>
-        </div>
-  </div>
-</div>
-</div>
-</section>
-<!-- End image carousel -->
 
 
 <!-- Benchmark Protocol -->
@@ -620,9 +582,16 @@
       </div>
     </div>
 
+    <h3 class="subhead">How a volume forms</h3>
+    <figure class="result-figure">
+      <img src="static/images/figures/TrjectoryVis.png" alt="Denoising trajectory across diffusion timesteps" loading="lazy">
+      <figcaption><strong>Denoising trajectory.</strong> From noise (t=200) to the final volume (t=0). Little changes early on, then the sparse structure emerges quickly in the later steps &mdash; shown as renders, point clouds, and value histograms.</figcaption>
+    </figure>
+
+    <h3 class="subhead">Ablation</h3>
     <figure class="result-figure">
       <img src="static/images/figures/AblVis.png" alt="Visual ablation study" loading="lazy">
-      <figcaption><strong>Ablation.</strong> Left: plain diffusion leaves noise and leaks density into empty space. Middle: adding companding sharpens detail but still has background noise. Right: with atomic mass supervision too, the structure is clean and the wisps survive.</figcaption>
+      <figcaption><strong>Each piece matters.</strong> Left: plain diffusion leaves noise and leaks density into empty space. Middle: adding companding sharpens detail but still has background noise. Right: with atomic mass supervision too, the structure is clean and the wisps survive.</figcaption>
     </figure>
   </div>
 </section>
