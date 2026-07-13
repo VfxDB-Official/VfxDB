@@ -39,7 +39,7 @@ from utils.tools import hard_log
 import numpy as np
 import torch
 import torch.nn.functional as F
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, default_collate
 try:
     import openvdb as vdb
     HAS_OPENVDB = True
@@ -72,6 +72,10 @@ class SampleRecord:
     abs_cat_dir: str
 
 
+class MetadataLoadError(RuntimeError):
+    """A requested per-sample JSON file is missing or invalid."""
+
+
 # ===================== 小工具 =====================
 
 def _npz_get(z: Any, key: str, default=None):
@@ -79,6 +83,22 @@ def _npz_get(z: Any, key: str, default=None):
         return z[key]
     except Exception:
         return default
+
+
+def _load_record_meta(rec: SampleRecord) -> Dict[str, Any]:
+    meta_path = rec.abs_meta_path
+    if not meta_path:
+        raise MetadataLoadError(
+            f"metadata was requested but no JSON path is available for {rec.abs_data_path}"
+        )
+    try:
+        with open(meta_path, "r", encoding="utf-8") as handle:
+            value = json.load(handle)
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        raise MetadataLoadError(f"failed to read sample JSON {meta_path}: {exc}") from exc
+    if not isinstance(value, dict):
+        raise MetadataLoadError(f"sample JSON must contain an object: {meta_path}")
+    return value
 
 def _as_int3(x):
     a = np.asarray(x, dtype=np.int64).reshape(-1)
@@ -91,16 +111,42 @@ def _read_seq_bbox_from_meta(meta_json: dict):
     兼容不同 key 命名：优先找 seq/sequence bbox；找不到就退化用 bbox_min/max
     （如果你的 meta 里就是序列 bbox 存在 bbox_min/max，那也 OK）
     """
-    cand = [
+    sequence_candidates = [
         ("seq_bbox_min", "seq_bbox_max"),
         ("sequence_bbox_min", "sequence_bbox_max"),
         ("seq_bmin", "seq_bmax"),
-        ("bbox_min", "bbox_max"),
     ]
-    for kmin, kmax in cand:
+    for kmin, kmax in sequence_candidates:
         if kmin in meta_json and kmax in meta_json:
-            return _as_int3(meta_json[kmin]), _as_int3(meta_json[kmax])
+            bmin = _as_int3(meta_json[kmin])
+            bmax = _as_int3(meta_json[kmax])
+            if (bmin > bmax).any():
+                raise ValueError(f"bbox min exceeds max: {bmin} > {bmax}")
+            return bmin, bmax, True
+    if "bbox_min" in meta_json and "bbox_max" in meta_json:
+        bmin = _as_int3(meta_json["bbox_min"])
+        bmax = _as_int3(meta_json["bbox_max"])
+        if (bmin > bmax).any():
+            raise ValueError(f"bbox min exceeds max: {bmin} > {bmax}")
+        return bmin, bmax, False
     return None
+
+
+def collate_volume_batch(batch: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Collate tensors normally while preserving heterogeneous JSON objects."""
+    if not batch:
+        return default_collate(batch)
+    has_meta = ["meta" in sample for sample in batch]
+    if any(has_meta) and not all(has_meta):
+        raise MetadataLoadError("batch mixes samples with and without requested JSON")
+    if not all(has_meta):
+        return default_collate(batch)
+
+    metadata = [sample["meta"] for sample in batch]
+    tensor_fields = [{key: value for key, value in sample.items() if key != "meta"} for sample in batch]
+    collated = default_collate(tensor_fields)
+    collated["meta"] = metadata
+    return collated
 
 
 # 解析 hashid__nXXX（支持 .vdb/.npz/.npy 等）
@@ -319,16 +365,17 @@ class VolumeMultiDataset(Dataset):
         if self.prev_bbox_mode not in ("seq", "frame"):
             raise ValueError(f"prev_bbox_mode must be 'seq' or 'frame', got {prev_bbox_mode}")
         if self.prev_k > 0 and self.prev_bbox_mode == "frame":
-            print(f"[WARN] prev_bbox_mode='frame' may lead to inconsistent bbox for prev samples")
+            print("[WARN] prev_bbox_mode='frame' may lead to inconsistent bbox for prev samples")
             # self.prev_bbox_mode = "seq"
         elif self.prev_k == 0 and self.prev_bbox_mode == "seq":
-            print(f"[WARN] prev_k=0 makes prev_bbox_mode='seq' meaningless")
+            print("[WARN] prev_k=0 makes prev_bbox_mode='seq' meaningless")
             # self.prev_bbox_mode = "frame"
 
         # 兼容旧逻辑：你其他路径如果还读 self.transform_included，这里给一个明确 bool
         self.transform_included = (self.transform_included_mode == "force_on")
         self._seq_bbox_minmax: Dict[str, Tuple[np.ndarray, np.ndarray]] = {}
         self._seq_need_include: Dict[str, bool] = {}
+        seq_bbox_source: Dict[str, str] = {}
         self.prev_k = int(prev_k)
         self.prev_policy = str(prev_policy).lower()
         self.return_prev_occ = bool(return_prev_occ)
@@ -357,25 +404,42 @@ class VolumeMultiDataset(Dataset):
 
         for rec in self.samples:
             seq_key, _ = _seqkey_from_record(rec)
-            if seq_key in self._seq_bbox_minmax:
-                continue
-
-            bminmax = None
-            if rec.abs_meta_path is not None and os.path.exists(rec.abs_meta_path):
+            bbox = None
+            if rec.abs_meta_path is not None:
+                mj = _load_record_meta(rec)
                 try:
-                    with open(rec.abs_meta_path, "r", encoding="utf-8") as f:
-                        mj = json.load(f)
-                    bminmax = _read_seq_bbox_from_meta(mj)
-                except Exception:
-                    bminmax = None
+                    bbox = _read_seq_bbox_from_meta(mj)
+                except (TypeError, ValueError) as exc:
+                    raise MetadataLoadError(
+                        f"sample JSON has an invalid bounding box: {rec.abs_meta_path}: {exc}"
+                    ) from exc
 
-            if bminmax is None:
+            if bbox is None:
                 # 没有 meta / meta 没 bbox：让 vdb_ext_get fallback 到 file bbox（bbox_min/max 传 None）
                 continue
 
-            seq_bmin, seq_bmax = bminmax
-            self._seq_bbox_minmax[seq_key] = (seq_bmin, seq_bmax)
+            bmin, bmax, is_sequence_bbox = bbox
+            previous = self._seq_bbox_minmax.get(seq_key)
+            previous_source = seq_bbox_source.get(seq_key)
+            if is_sequence_bbox:
+                if previous_source == "sequence" and previous is not None:
+                    if not (np.array_equal(previous[0], bmin) and np.array_equal(previous[1], bmax)):
+                        raise MetadataLoadError(
+                            f"inconsistent sequence bounding boxes for {seq_key}: {rec.abs_meta_path}"
+                        )
+                self._seq_bbox_minmax[seq_key] = (bmin, bmax)
+                seq_bbox_source[seq_key] = "sequence"
+            elif previous_source != "sequence":
+                if previous is None:
+                    self._seq_bbox_minmax[seq_key] = (bmin, bmax)
+                else:
+                    self._seq_bbox_minmax[seq_key] = (
+                        np.minimum(previous[0], bmin),
+                        np.maximum(previous[1], bmax),
+                    )
+                seq_bbox_source[seq_key] = "frame_union"
 
+        for seq_key, (seq_bmin, _seq_bmax) in self._seq_bbox_minmax.items():
             # 方案二自动判定规则：任意维度 < 0 就认为需要 include
             self._seq_need_include[seq_key] = bool((seq_bmin < 0).any())
     def __len__(self) -> int:
@@ -388,19 +452,23 @@ class VolumeMultiDataset(Dataset):
         ext = os.path.splitext(rec.abs_data_path)[1].lower()
 
         if ext in (".npz", ".npy"):
-            return self.np_get(idx)
-        if ext == ".vdb":
-            vdb_ex_get_batch = self.vdb_ext_get(idx)
+            sample = self.np_get(idx)
+        elif ext == ".vdb":
+            sample = self.vdb_ext_get(idx)
             # vdb_get_batch = self.vdb_get(idx)
-            # diff = vdb_get_batch["volume"] - vdb_ex_get_batch["volume"]
+            # diff = vdb_get_batch["volume"] - sample["volume"]
             # print(f"diff.abs().std = {diff.abs().std():.6f}, mean = {diff.abs().mean():.6f}")
             # if diff.abs().std() > 1e-3 :
             #     print(f"vdb_get_batch volume: {vdb_get_batch['volume'].abs().std():.6f}, mean = {vdb_get_batch['volume'].abs().mean():.6f}")
-            #     print(f"vdb_ex_get_batch volume: {vdb_ex_get_batch['volume'].abs().std():.6f}, mean = {vdb_ex_get_batch['volume'].abs().mean():.6f}")
+            #     print(f"vdb_ex_get_batch volume: {sample['volume'].abs().std():.6f}, mean = {sample['volume'].abs().mean():.6f}")
             #     print(f"transform_included: {self.transform_included}, pad_to_cube: {getattr(self, 'pad_to_cube', True)}")
             #     print(f"[WARN] vdb_get_batch diff.abs().std > 1e-3: {diff.abs().std():.6f} in path {rec.abs_data_path}")
-            return vdb_ex_get_batch
-        raise ValueError(f"unknown datatype ext={ext}, path={rec.abs_data_path}")
+        else:
+            raise ValueError(f"unknown datatype ext={ext}, path={rec.abs_data_path}")
+
+        if self.return_meta:
+            sample["meta"] = _load_record_meta(rec)
+        return sample
 
     def np_get(self, idx: int) -> Dict[str, Any]:
         rec = self.samples[idx]
@@ -479,14 +547,6 @@ class VolumeMultiDataset(Dataset):
                     if v_occ is not None:
                         lvl_maps[k_occ] = torch.from_numpy(np.asarray(v_occ, dtype=np.uint8).astype(np.float32))
             sample["lvl_maps"] = lvl_maps
-
-        if self.return_meta and rec.abs_meta_path is not None and os.path.exists(rec.abs_meta_path):
-            try:
-                with open(rec.abs_meta_path, "r", encoding="utf-8") as f:
-                    meta = json.load(f)
-            except Exception:
-                meta = None
-            sample["meta"] = meta
 
         return sample
 
@@ -838,6 +898,8 @@ class VolumeMultiDataset(Dataset):
             try:
                 sample = self._get_core(cur_idx)
                 return self._attach_prev_fields(sample, cur_idx)
+            except MetadataLoadError:
+                raise
             except Exception as e:
                 last_error = e
                 if offset < 3:
@@ -871,6 +933,13 @@ def _collect_samples(
     categories: Optional[List[str]] = None,
     require_meta: bool = False,
 ) -> Tuple[List[SampleRecord], Dict[str, int]]:
+
+    policy_transition = os.path.join(root_dir, ".vfxdb", "policy-transition.json")
+    if os.path.lexists(policy_transition):
+        raise RuntimeError(
+            "VfxDB IO-bad policy transition is incomplete; rerun the downloader "
+            f"for this data root before training: {policy_transition}"
+        )
 
     ds_index = _load_dataset_index(root_dir)
     all_cats = ds_index.get("categories", [])
@@ -929,10 +998,14 @@ def _collect_samples(
             abs_meta = None
             if require_meta:
                 if not meta_rel:
-                    continue
+                    raise MetadataLoadError(
+                        f"category index row has no meta_path for installed sample: {abs_vol}"
+                    )
                 candidate_meta = os.path.join(cat_dir, meta_rel)
                 if not os.path.isfile(candidate_meta):
-                    continue
+                    raise MetadataLoadError(
+                        f"sample JSON is missing for installed sample {abs_vol}: {candidate_meta}"
+                    )
                 abs_meta = candidate_meta
 
             samples.append(
@@ -1047,8 +1120,6 @@ def _split_by_sequence_folder(
 
 # ===================== balance（保持你原逻辑） =====================
 
-from collections import defaultdict
-
 def _balance_samples_equal_per_class(
     samples: List[SampleRecord],
     seed: int,
@@ -1123,7 +1194,11 @@ def build_dataset_splits(
     require_meta: bool = False,
 ) -> Dict[str, VolumeMultiDataset]:
 
-    samples, cat_to_idx = _collect_samples(root_dir, categories, require_meta=require_meta)
+    samples, cat_to_idx = _collect_samples(
+        root_dir,
+        categories,
+        require_meta=(require_meta or return_meta),
+    )
 
     ratio_sum = train_ratio + val_ratio + test_ratio
     if ratio_sum <= 0:
@@ -1230,7 +1305,6 @@ def build_dataset_splits(
 
 # ===================== 小测试 =====================
 def _debug_check_prev(ds, num_checks: int = 30, seed: int = 0):
-    import random, os
     rng = random.Random(seed)
 
     print("\n[CHECK] dataset size =", len(ds))

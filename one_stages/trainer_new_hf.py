@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from typing import List, Optional, Dict, Any
+from typing import Optional, Dict, Any
 
 import torch
 import torch.nn.functional as F
@@ -13,7 +13,6 @@ import tqdm
 
 from utils.ops import upsample_nearest
 from accelerate import Accelerator
-from accelerate.utils import ProjectConfiguration
 from accelerate.utils import set_seed
 from diffusers import DDPMScheduler
 from utils.diffusion_math import p2_weight_from_snr, snr_from_alpha_bar
@@ -38,6 +37,7 @@ from legacy.train_align import (
     compute_legacy_timestep_weights,
     predict_x0_raw_legacy,
 )
+from tile_dataloader import collate_volume_batch
 from one_stages.model_adapter import (
     ModelConditioning,
     ModelPredictions,
@@ -222,6 +222,8 @@ class Trainer:
         if num_workers > 0:
             loader_kwargs["prefetch_factor"] = int(self.cfg.get("prefetch_factor", 4))
             loader_kwargs["persistent_workers"] = True
+        if getattr(ds, "return_meta", False):
+            loader_kwargs["collate_fn"] = collate_volume_batch
         return DataLoader(**loader_kwargs)
 
     def _resume_if_needed(self, device) -> None:

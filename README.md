@@ -121,49 +121,104 @@ PY
 ## Download data
 
 The public dataset is hosted at <https://huggingface.co/datasets/ryogishiki/VfxDB>.
-The downloader fetches `dataset_index.json`, the selected `category_index.json` files, the needed
-VDB tar archives, and (by default) a small metadata archive. The released training configs do not
-require metadata (`require_meta: false`).
-
-By default the downloader is intentionally conservative: with no selection flags it pulls a **single
-category** (`CloudWave`) capped at **1000 samples per category** — enough to try a run without
-accidentally downloading the whole (large) dataset. Use the flags below to control the scope.
+Every invocation first downloads all `<Category>/category_index.json` files and fully installs the
+published `<Category>/index/*.json` files. These JSON files are mandatory inputs to download
+planning and training, not an optional download. A bare command prepares only this JSON control
+data and downloads no VDB tar:
 
 ```bash
-# Small real VDB smoke dataset (24 SurfaceFire samples)
-python tools/download_extract_data.py --data-root data/vdbset --folders SurfaceFire:24
+# Prepare all required JSON; no VDB data is downloaded
+python tools/download_extract_data.py
 
-# 1000-VDB example (CloudWave)
-python tools/download_extract_data.py --data-root data/vdbset \
-  --categories CloudWave --max-samples-per-category 1000
+# Presets
+python tools/download_extract_data.py /data/vfxdb --preset smoke
+python tools/download_extract_data.py /data/vfxdb --preset medium
+python tools/download_extract_data.py /data/vfxdb --preset full
 
-# Full dataset: every category, every sample (large — see --plan-only first)
-python tools/download_extract_data.py --data-root data/vdbset --all
+# One percentage across all categories
+python tools/download_extract_data.py /data/vfxdb --percentage 10
 
-# Preview what --all would fetch (categories + archive count) without downloading:
-python tools/download_extract_data.py --data-root data/vdbset --all --plan-only
-
-# Behind a local proxy: add --proxy http://127.0.0.1:7890
-# Skip metadata (indexes + VDB only): add --skip-meta
-# Metadata only:
-python tools/download_extract_meta.py --data-root data/vdbset
+# Target 1000 usable samples from each named category, rounded up to whole tars
+python tools/download_extract_data.py /data/vfxdb \
+  --category CloudWave \
+  --category SurfaceFire \
+  --max-samples 1000
 ```
 
-> `--all` is shorthand for `--all-categories --max-samples-per-category 0` (where `0` means "no
-> per-category cap"). To scope to specific categories at full depth, combine
-> `--categories A B --max-samples-per-category 0`.
+For an interactive terminal workflow, add `--tui` without a selection option:
+
+```bash
+python tools/download_extract_data.py /data/vfxdb --tui
+```
+
+The TUI confirms the destination, prepares the same mandatory category indexes and
+`<Category>/index/*.json` files, and only then offers modes using those installed local indexes.
+Before any VDB tar starts, it shows the exact tar allocation, usable sample counts, conservative
+network/install sizes, cache and destination free space, and whole-tar rounding. The review action
+can download, go back and change the selection, or quit while keeping required JSON ready. Full
+mode additionally requires the exact text `FULL`. Revision, cache location, and the explicit
+diagnostic option to retain known IO-bad samples live under advanced settings.
+
+During transfer the TUI separates overall tar progress, current-file bytes, JSON-file work, and
+install status. `Ctrl-C` stops safely and the same selection can be rerun to continue. `--tui`
+requires interactive stdin and stdout; scripts, pipes, and batch jobs should use the ordinary CLI
+examples above.
+
+The three presets are deterministic:
+
+- **Smoke:** the first 2 complete tars from every category; a shorter category contributes all of
+  its tars and its shortfall is not redistributed.
+- **Medium:** 20% of all dataset tars, rounded up and allocated across categories in balanced
+  rounds; categories with remaining tars fill the target after shorter categories are exhausted.
+- **Full:** every tar from every category.
+
+Preset mode cannot be combined with `--percentage`, `--category`, or `--max-samples`. Percentage
+mode always covers all categories. Category mode requires both one or more `--category` arguments
+and one shared positive `--max-samples`, applied separately to each category. If the last selected
+tar crosses the requested maximum, it is downloaded in full; if the maximum exceeds the category,
+that category is downloaded in full.
+
+Selection, transfer, verification, and extraction are all whole-tar operations. Tar order follows
+the first appearance of each sequence in the local category index. `EnvironmentalFog` remains
+single-frame data—each VDB row counts as one sample—but it is still transferred as complete tars.
+
+Known IO-bad files are handled after a complete tar is extracted. By default, the bad VDB and its
+corresponding `<Category>/index/*.json` are removed, while the original category-index row is kept
+and annotated with `"deleted_bad_io_sample": true`. With `--include-bad`, those files are retained
+and the same row is annotated with `"deleted_bad_io_sample": false`. The option does not change
+tar selection, ordering, quotas, or normal-sample counts.
+
+The downloader pins the destination to one immutable Hugging Face commit, validates complete tars,
+and uses `huggingface_hub` for bounded HTTP retries and its verified cache. Re-run the same command
+after an interruption to reuse every completed tar and local installation; depending on the
+installed Hub version, only the tar that was actively transferring may restart. Use `--cache-dir`
+or `HF_HOME` to place the Hugging Face cache on another disk. Use `--revision` to choose a dataset
+revision, and the standard `HTTPS_PROXY`
+environment variable for a proxy. Start with an empty destination: a nonempty directory created by
+an older or manual downloader has no pinned revision state and is rejected rather than silently
+mixed with the current dataset commit. If an IO-bad policy transition is interrupted, rerun the
+same downloader command; the training loader refuses that incomplete root until reconciliation
+finishes. The complete behavioral contract is in
+[`docs/DOWNLOADER_SPEC.md`](docs/DOWNLOADER_SPEC.md).
+
+For training or experiments that consume the per-sample JSON, set `return_meta: true` in the
+training config. The loader then follows each `category_index.json` row's exact `meta_path` and
+returns that decoded `<Category>/index/*.json` object as `sample["meta"]`; this also makes the JSON
+mandatory for every installed VDB. Missing or invalid JSON fails explicitly instead of silently
+substituting another sample. A DataLoader batch keeps these heterogeneous objects as a list under
+`batch["meta"]` while tensor fields are collated normally. The released configs currently leave
+`return_meta` disabled unless the experiment needs those fields.
 
 Expected extracted layout:
 
 ```text
 data/vdbset/
-  dataset_index.json
   SurfaceFire/
     category_index.json
-    24/
-      _sequence_manifest.json
-      s0024__n0000.vdb
-      s0024__n0001.vdb
+    index/
+      <sample>.json
+    <sequence>/
+      <sample>.vdb
       ...
 ```
 
@@ -199,7 +254,7 @@ NUM_PROCESSES=8 MIXED_PRECISION=fp16 ./sh/run_train_cond_static_32.sh --data-roo
 > (`0` = no cap) in the config you are running, e.g. `configs/train_static_32.yaml`. Then:
 >
 > ```bash
-> python tools/download_extract_data.py --data-root data/vdbset --all
+> python tools/download_extract_data.py data/vdbset --preset full
 > NUM_PROCESSES=8 MIXED_PRECISION=fp16 ./sh/run_train_cond_static_32.sh --data-root data/vdbset
 > ```
 >
