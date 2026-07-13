@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-from vfxdb_downloader import main
+from vfxdb_tool_bootstrap import run_remote
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_remote("main"))

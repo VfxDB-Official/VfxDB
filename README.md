@@ -2,7 +2,7 @@
 
 **A Visual Effects Volume Dataset and Benchmark for VDB-Native Generative Modeling.**
 
-VfxDB is a large-scale VDB/OpenVDB volumetric effects dataset (smoke, fire, dust, explosions, …) together with a reproducible benchmark and a diffusion training/inference framework for **sparse 3D volume generation**. This repository contains the training and inference code and the data download tooling.
+VfxDB is a large-scale VDB/OpenVDB volumetric effects dataset (smoke, fire, dust, explosions, …) together with a reproducible benchmark and a diffusion training/inference framework for **sparse 3D volume generation**. This repository contains the training and inference code plus thin compatibility launchers for the dataset-local downloader.
 
 The models here are class-conditional (classifier-free guidance) 3D diffusion models that generate sparse voxel volumes derived from VDB grids, in two settings: **static** (single volume) and **temporal** (volume sequences). The framework uses an *Atomic-Continuous* prior to address the distribution mismatch between vanilla diffusion and the intrinsic sparsity of VDB data.
 
@@ -121,10 +121,23 @@ PY
 ## Download data
 
 The public dataset is hosted at <https://huggingface.co/datasets/ryogishiki/VfxDB>.
-Every invocation first downloads all `<Category>/category_index.json` files and fully installs the
-published `<Category>/index/*.json` files. These JSON files are mandatory inputs to download
-planning and training, not an optional download. A bare command prepares only this JSON control
-data and downloads no VDB tar:
+The dataset repository is also the **only source** for the downloader, Rich TUI,
+specification, and downloader regression tests. This training repository keeps
+only two thin compatibility entries, `tools/download_extract_data.py` and
+`tools/download_extract_meta.py`, backed by one small bootstrap. They retrieve
+the two source modules from the pinned dataset-tool commit through the standard
+Hugging Face cache, then forward all arguments unchanged. Starting either entry
+does not download dataset payloads.
+
+Projects that do not use this training repository should obtain the tool
+directly using the instructions in the
+[VfxDB dataset README](https://huggingface.co/datasets/ryogishiki/VfxDB).
+
+Every invocation first downloads all `<Category>/category_index.json` files and
+fully installs the published `<Category>/index/*.json` files. These JSON files
+are mandatory inputs to download planning and training, not an optional
+download. A bare command prepares only this JSON control data and downloads no
+VDB tar:
 
 ```bash
 # Prepare all required JSON; no VDB data is downloaded
@@ -198,8 +211,8 @@ environment variable for a proxy. Start with an empty destination: a nonempty di
 an older or manual downloader has no pinned revision state and is rejected rather than silently
 mixed with the current dataset commit. If an IO-bad policy transition is interrupted, rerun the
 same downloader command; the training loader refuses that incomplete root until reconciliation
-finishes. The complete behavioral contract is in
-[`docs/DOWNLOADER_SPEC.md`](docs/DOWNLOADER_SPEC.md).
+finishes. The complete behavioral contract lives with the dataset in
+[`docs/DOWNLOADER_SPEC.md`](https://huggingface.co/datasets/ryogishiki/VfxDB/blob/main/docs/DOWNLOADER_SPEC.md).
 
 For training or experiments that consume the per-sample JSON, set `return_meta: true` in the
 training config. The loader then follows each `category_index.json` row's exact `meta_path` and
