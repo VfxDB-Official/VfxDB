@@ -9,3 +9,4 @@ rich>=13.7
 safetensors
 torch>=2.5.1
 tqdm
+zstandard>=0.22.0

@@ -72,7 +72,9 @@ details (including the source build for non-Linux / non-py310 platforms), then
 ## Installation
 
 > Tested on Linux + NVIDIA GPU, Python 3.10.16, PyTorch 2.5.1+cu124 (CUDA runtime 12.4),
-> NVIDIA driver 570.158.01. System tools used by the scripts: `git`, `tar`, `zstd`.
+> NVIDIA driver 570.158.01. The dataset downloader uses the pip-installed
+> `zstandard` package and does not require a system `zstd` command. Native
+> OpenVDB builds and maintainer packaging have separate system dependencies.
 
 ### 1. Python environment and PyTorch
 

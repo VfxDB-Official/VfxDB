@@ -12,7 +12,7 @@ from typing import Callable, Optional, Sequence
 
 REPO_ID = "ryogishiki/VfxDB"
 REPO_TYPE = "dataset"
-TOOLS_REVISION = "447fdc4b4edf6fb59827f31cee7a575d4c9c6617"
+TOOLS_REVISION = "72e75782f8db561d4498969638e1590778df7765"
 REMOTE_FILES = (
     "tools/vfxdb_downloader.py",
     "tools/vfxdb_tui.py",
