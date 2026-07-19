@@ -36,7 +36,11 @@ def main() -> None:
 
     ckpt = str(getattr(args, "ckpt", "") or "").strip()
     if not ckpt:
-        raise RuntimeError("Missing ckpt. Set it in config or pass --ckpt /path/to/hf/checkpoint_dir.")
+        raise RuntimeError(
+            "Missing ckpt. Pass a local checkpoint directory or a Hugging Face model repo id."
+        )
+    ckpt_subfolder = str(getattr(args, "ckpt_subfolder", "") or "").strip() or None
+    ckpt_revision = str(getattr(args, "ckpt_revision", "") or "").strip() or None
 
     out_dir = ensure_dir(str(getattr(args, "out_dir", "results/infer")))
     step_name = str(getattr(args, "step_name", "") or "").strip()
@@ -53,6 +57,8 @@ def main() -> None:
         ckpt_path=ckpt,
         device=device,
         use_ema=_bool(getattr(args, "use_ema", True), True),
+        ckpt_subfolder=ckpt_subfolder,
+        ckpt_revision=ckpt_revision,
         scheduler_name=str(getattr(args, "scheduler_name", "ddpm")),
         scheduler_legacy_align=_bool(getattr(args, "scheduler_legacy_align", False), False),
         scheduler_mode=getattr(args, "scheduler_mode", None),
@@ -173,6 +179,8 @@ def main() -> None:
     with open(os.path.join(out_dir, "summary.json"), "w", encoding="utf-8") as handle:
         json.dump({
             "checkpoint": ckpt,
+            "checkpoint_subfolder": ckpt_subfolder,
+            "checkpoint_revision": ckpt_revision,
             "seed": seed,
             "num_samples": num_samples,
             "seq_len": seq_len,

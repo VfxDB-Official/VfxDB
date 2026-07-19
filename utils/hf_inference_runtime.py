@@ -45,6 +45,8 @@ def load_hf_pipeline_bundle(
     ckpt_path: str,
     device: torch.device,
     use_ema: bool,
+    ckpt_subfolder: Optional[str] = None,
+    ckpt_revision: Optional[str] = None,
     scheduler_name: str = "ddpm",
     scheduler_legacy_align: bool = False,
     scheduler_mode: Optional[str] = None,
@@ -66,6 +68,8 @@ def load_hf_pipeline_bundle(
         ckpt_path=ckpt_path,
         device=device,
         use_ema=use_ema,
+        ckpt_subfolder=ckpt_subfolder,
+        ckpt_revision=ckpt_revision,
     )
     runtime = resolve_hf_runtime_bundle(
         checkpoint=checkpoint,

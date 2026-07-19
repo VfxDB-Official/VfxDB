@@ -1,0 +1,41 @@
+ckpt: ryogishiki/VfxDB-models
+ckpt_subfolder: checkpoints/paper-v1/temporal-conditional-32
+ckpt_revision: b5c55ebe6afdbd685562b8f54e13c7b4fe99aedb
+out_dir: results/infer/paper_temporal_conditional_32
+step_name: ""
+use_ema: false
+
+volume_size: 32
+value_space: log1p
+log1p_scale: 0.02
+
+timesteps: 200
+beta_start: 9.999999747378752e-05
+beta_end: 0.019999999552965164
+sampling_steps: 200
+scheduler_name: ddpm
+scheduler_legacy_align: true
+scheduler_mode: legacy_aligned
+
+eval_prediction_type: auto
+eval_cfg_scale: 5.0
+eval_cfg_class: null
+eval_cfg_class_id: 0
+only_cfg_eps: true
+
+eval_seq_len: 16
+eval_seq_init: zero
+eval_prev_noised: true
+eval_prev_fixed_eps: true
+
+eval_num_samples: 1
+eval_batch_size: 1
+seed: 123456
+
+eval_disable_occ_gating: false
+eval_force_occ_gating: true
+eval_occ_gating_mode: soft
+eval_occ_gating_thr: 0.5
+eval_occ_soft_k: 12.0
+
+save_npz: true

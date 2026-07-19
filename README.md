@@ -10,6 +10,7 @@ The models here are class-conditional (classifier-free guidance) 3D diffusion mo
 
 - 🌐 Project page: <https://vfxdb-official.github.io/VfxDB/>
 - 📦 Dataset: <https://huggingface.co/datasets/ryogishiki/VfxDB>
+- 🧠 Paper checkpoints: <https://huggingface.co/ryogishiki/VfxDB-models>
 - 📄 Paper: *coming soon*
 
 ## Contents
@@ -303,8 +304,38 @@ and run inference manually from checkpoints:
 
 ## Inference
 
-Run inference from a Hugging Face-format checkpoint directory. Outputs are saved as `.npz` files
-plus a `summary.json`.
+The three paper checkpoints are published as inference-only EMA safetensors in
+[`ryogishiki/VfxDB-models`](https://huggingface.co/ryogishiki/VfxDB-models). The supplied configs
+pin the initial Hub revision and the paper-aligned scheduler, CFG, occupancy, and temporal settings.
+They load the requested Hub subfolder directly; no manual checkpoint download is required.
+
+```bash
+# Static unconditional
+python infer_one_stage_hf.py --config configs/infer_paper_static_unconditional_32.yaml
+
+# Static class-conditional (defaults to class id 0)
+python infer_one_stage_hf.py --config configs/infer_paper_static_conditional_32.yaml
+
+# Temporal class-conditional, 16 frames (defaults to class id 0)
+python infer_one_stage_hf.py --config configs/infer_paper_temporal_conditional_32.yaml
+```
+
+The paper weights already store EMA tensors as the primary safetensors, so these configs correctly
+set `use_ema: false`; no pickle checkpoint or `trainer_state.pt` is needed. Exact historical sampling
+uses the legacy-aligned DDPM scheduler and 200 steps. Reducing `sampling_steps` is useful for a smoke
+test but is not the paper setting.
+
+You can override any key declared in a config, for example:
+
+```bash
+python infer_one_stage_hf.py \
+  --config configs/infer_paper_static_conditional_32.yaml \
+  --eval-cfg-class-id 3 \
+  --out-dir results/infer/class_3
+```
+
+Local Hugging Face-format checkpoint directories remain supported. Outputs are saved as `.npz`
+files plus a `summary.json`:
 
 ```bash
 ./sh/infer_one_stage_hf.sh \
@@ -314,13 +345,17 @@ plus a `summary.json`.
   --sampling-steps 20
 ```
 
-For conditional checkpoints, select a class by id when needed:
+For another Hub model or revision, set `ckpt`, `ckpt_subfolder`, and optionally `ckpt_revision` in a
+config. Direct Diffusers model loading is also supported:
 
-```bash
-./sh/infer_one_stage_hf.sh \
-  --ckpt /path/to/hf/checkpoint \
-  --out-dir results/infer \
-  --eval-cfg-class-id 0
+```python
+from models.vfx_model import UNet3DModel
+
+model = UNet3DModel.from_pretrained(
+    "ryogishiki/VfxDB-models",
+    subfolder="checkpoints/paper-v1/static-conditional-32",
+    revision="b5c55ebe6afdbd685562b8f54e13c7b4fe99aedb",
+)
 ```
 
 ## Troubleshooting & advanced
