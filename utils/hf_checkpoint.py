@@ -33,6 +33,8 @@ HF_INFERENCE_META_FIELDS = (
 @dataclass
 class LoadedHFCheckpoint:
     ckpt_dir: str
+    ckpt_subfolder: Optional[str]
+    ckpt_revision: Optional[str]
     model: Any
     train_state: Optional[Dict[str, Any]]
     train_meta: Dict[str, Any]
@@ -132,16 +134,28 @@ def load_hf_checkpoint(
     ckpt_path: str,
     device: torch.device,
     use_ema: bool,
+    ckpt_subfolder: Optional[str] = None,
+    ckpt_revision: Optional[str] = None,
 ) -> LoadedHFCheckpoint:
     ckpt_dir = str(ckpt_path)
+    ckpt_subfolder = str(ckpt_subfolder or "").strip().strip("/") or None
+    ckpt_revision = str(ckpt_revision or "").strip() or None
     if os.path.isfile(ckpt_dir):
         print(f"[HF WARN] checkpoint path is a file: {ckpt_dir}")
         ckpt_dir = os.path.dirname(ckpt_dir)
         print(f"[HF WARN] using Hugging Face checkpoint directory instead: {ckpt_dir}")
 
-    model = model_cls.from_pretrained(ckpt_dir).to(device)
+    load_kwargs: Dict[str, Any] = {}
+    if ckpt_subfolder is not None:
+        load_kwargs["subfolder"] = ckpt_subfolder
+    if ckpt_revision is not None:
+        load_kwargs["revision"] = ckpt_revision
+    model = model_cls.from_pretrained(ckpt_dir, **load_kwargs).to(device)
 
-    state_path = os.path.join(ckpt_dir, "trainer_state.pt")
+    local_ckpt_dir = ckpt_dir
+    if ckpt_subfolder is not None and os.path.isdir(ckpt_dir):
+        local_ckpt_dir = os.path.join(ckpt_dir, ckpt_subfolder)
+    state_path = os.path.join(local_ckpt_dir, "trainer_state.pt")
     train_state = None
     train_meta: Dict[str, Any] = {}
     if os.path.exists(state_path):
@@ -149,9 +163,13 @@ def load_hf_checkpoint(
         if isinstance(train_state, dict) and isinstance(train_state.get("train_meta"), dict):
             train_meta = dict(train_state["train_meta"])
 
+    inference_meta = read_hf_inference_meta(model.config, train_meta)
     if use_ema:
         if train_state is None:
-            print(f"[HF WARN] use_ema=True but {state_path} not found. Using online weights.")
+            if bool(inference_meta.get("ema_weights_primary", False)):
+                print("[HF] primary safetensors are already EMA weights.")
+            else:
+                print(f"[HF WARN] use_ema=True but {state_path} not found. Using primary weights.")
         else:
             print(f"[HF] Attempting to load EMA weights from {state_path} ...")
             ema_weights = train_state.get("ema", None)
@@ -161,9 +179,10 @@ def load_hf_checkpoint(
                 missing, unexpected = model.load_state_dict(ema_weights, strict=False)
                 print(f"[HF] EMA load report: missing={len(missing)} unexpected={len(unexpected)}")
 
-    inference_meta = read_hf_inference_meta(model.config, train_meta)
     return LoadedHFCheckpoint(
         ckpt_dir=ckpt_dir,
+        ckpt_subfolder=ckpt_subfolder,
+        ckpt_revision=ckpt_revision,
         model=model,
         train_state=train_state,
         train_meta=train_meta,

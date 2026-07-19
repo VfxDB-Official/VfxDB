@@ -1,4 +1,6 @@
 ckpt: ""
+ckpt_subfolder: ""
+ckpt_revision: ""
 out_dir: results/infer
 step_name: ""
 use_ema: true
