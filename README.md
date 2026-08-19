@@ -15,7 +15,7 @@ Scripts you will actually run: `sh/` (train / smoke tests), `infer_one_stage_hf.
 
 ## Quick start
 
-Tested on Linux + NVIDIA GPU, Python 3.10, PyTorch 2.5.1+cu124. The commands below use tiny dummy data and do **not** download the dataset.
+Tested on Linux + NVIDIA GPU, Python 3.10, PyTorch 2.5.1+cu124.
 
 ```bash
 git clone https://github.com/VfxDB-Official/VfxDB.git
@@ -28,15 +28,43 @@ python -m pip install -r requirements-core.txt
 
 curl -L https://github.com/VfxDB-Official/VfxDB/releases/download/prebuilt-v1/vdb_ext-runtime-linux-x86_64-py310.tar.gz \
   | tar -xz -C "$(python -c 'import site; print(site.getsitepackages()[0])')"
+```
 
+Then run three local checks. They use tiny dummy data and do **not** download the dataset.
+
+**1. Dummy train** — make a tiny 8³ volume set and run 2 training steps. Checks the trainer, dataloader, and `vdb_ext`.
+
+```bash
 ./sh/train_dummy_static.sh
+```
+
+Expect a checkpoint at `runs/dummy_static/one_stage_dummy_static/ckpt/step_000002/`.
+
+**2. Sampler parity** — CPU-only. The Diffusers pipeline must match the paper sampling loop (max abs diff `< 1e-6`).
+
+```bash
 ./sh/validate_pipeline_parity.sh
+```
+
+Expect:
+
+```text
+legacy_align=False x0_max_diff=... occ_max_diff=...
+legacy_align=True  x0_max_diff=... occ_max_diff=...
+[PASS] pipeline parity
+```
+
+**3. Dummy infer** — load that checkpoint and write two `.npz` volumes.
+
+```bash
 ./sh/infer_one_stage_hf.sh \
   --ckpt runs/dummy_static/one_stage_dummy_static/ckpt/step_000002 \
   --out-dir results/dummy_infer
 ```
 
-If those three scripts succeed, the environment is ready.
+Expect `results/dummy_infer/<timestamp>/summary.json` and two `.npz` files under it.
+
+If those three succeed, the environment is ready.
 
 The prebuilt VDB runtime (`openvdb` + `vdb_ext`) is Linux x86_64 / CPython 3.10. Other platforms: build [vdb_ext](https://github.com/ghosard/vdb_ext) from source.
 
